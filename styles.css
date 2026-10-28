@@ -508,13 +508,19 @@ footer p+p{margin-top:8px}
 .recentlist a b{color:var(--j);margin-right:4px;font-variant-numeric:tabular-nums}
 .recentlist small{display:block;font-size:12px;margin-top:2px}
 
+.linkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.linkgrid .ccard.wide{grid-column:1/-1}
+.links a{color:var(--j);font-weight:700;text-decoration:none}
+.links a:hover{text-decoration:underline}
+.plain.links li{margin:6px 0}
+
 @media print{
   @page{size:A4;margin:12mm 12mm 13mm}
   :root{--bg:#fff;--bg2:#fff;--bg3:#fff;--line:#bbb;--line2:#999;--tx:#000;--tx2:#222;--tx3:#555;
     --j:#000;--j-bg:#fff;--e:#333;--e-bg:#fff;--c:#333;--c-bg:#fff;--p:#333;--p-bg:#fff;--shadow:none}
   html{scroll-behavior:auto}
   body{background:#fff;color:#000;font-size:10pt;line-height:1.5;-webkit-print-color-adjust:economy;print-color-adjust:economy}
-  nav,#practice,#src,#print,.alert,.timeline,header .lead,.fc,.ctrl,#qaList,#gbQa,.screenonly,.noprint{display:none!important}
+  nav,#practice,#src,#print,#links,.alert,.timeline,header .lead,.fc,.ctrl,#qaList,#gbQa,.screenonly,.noprint{display:none!important}
   .printonly{display:block!important}
   .wrap{max-width:none;padding:0}
   header{padding:0 0 3mm;border-bottom:2px solid #000;margin-bottom:4mm}

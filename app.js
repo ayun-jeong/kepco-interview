@@ -17,18 +17,18 @@
     return Object.assign({}, q, { srcs, n: srcs.length, iv, group: q.pred ? '시사·경북' : (iv === '직무' ? '직무' : '경험·공통') });
   });
   Object.entries(window.ESSAY_FOLLOWUPS || {}).forEach(([no, list]) => list.forEach((t, i) => Q.push({ id: `ef${no}_${i}`, cat: '자소서 꼬리', q: `[자소서 ${no}번] ${t}`, v: [], srcs: [], n: 0, iv: '경험', group: '자소서', essay: true })));
-  const grade = q => q.essay ? '자소서' : q.pred ? '예상' : q.n >= 5 ? 'S' : q.n >= 3 ? 'A' : q.n === 2 ? 'B' : 'C';
+  const grade = q => q.essay ? '자소서' : q.pred ? '예상' : q.n >= 10 ? 'S' : q.n >= 5 ? 'A' : q.n >= 2 ? 'B' : 'C';
   const gcls = g => ({ S: 'tS', A: 'tA', B: 'tB', C: 'tC' }[g] || 'tP');
   const ORDER = { '경험·공통': 0, '직무': 1, '시사·경북': 2, '자소서': 3 };
   const RECENT = new Set(window.RECENT_SRC || []);
   Q.forEach(q => { q.rec = q.srcs.filter(k => RECENT.has(k)); });
-  const srcLabel = k => { const s = S.get(k) || {}; return `${s.yr || ''} ${s.type || ''}${s.track === '기술' ? '(기술직)' : ''}`.trim(); };
+  const srcLabel = k => { const s = S.get(k) || {}; return `${s.yr || ''} ${s.type || ''}${s.track === '기술' ? '(기술직)' : s.track === '불명' ? '(직군 불명)' : ''}`.trim(); };
   const SORT = (a, b) => ORDER[a.group] - ORDER[b.group] || b.n - a.n || a.q.localeCompare(b.q, 'ko');
   [...Q].sort(SORT).forEach((q, i) => { q.no = i + 1; });
   const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
 
   /* ───── 헤더 ───── */
-  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장. 7번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
+  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장. 8번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
   const TL = [
     { d: '2026-10-27', t: '필기 합격 발표', s: '발표일 포함 3일 안에 자소서·증빙 제출' },
     { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자. 제출 전 따로 저장' },
@@ -114,7 +114,9 @@
   $('#qaChips').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; state.group = b.dataset.g; $$('#qaChips .chip').forEach(c => c.classList.toggle('on', c === b)); renderQa(); });
   let t; $('#qaq').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { state.q = e.target.value; renderQa(); }, 120); });
 
-  $('#recentList').innerHTML = Q.filter(q => q.rec.length).sort((a, b) => b.rec.length - a.rec.length || a.no - b.no).map(q => `<li><a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q)}</a><small>${q.rec.length}곳 · ${q.rec.map(srcLabel).join(', ')}</small></li>`).join('');
+  const RECENT_Q = Q.filter(q => q.rec.length).sort((a, b) => b.rec.length - a.rec.length || a.no - b.no);
+  $('#recentNote').textContent = `최근 후기에서 나온 질문 ${RECENT_Q.length}개 중 많이 나온 30개. 나머지는 5번 질문 모음의 “2025 하반기 이후” 칩에서 본다.`;
+  $('#recentList').innerHTML = RECENT_Q.slice(0, 30).map(q => `<li><a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q)}</a><small>${q.rec.length}곳 · ${[...new Set(q.rec.map(srcLabel))].join(', ')}</small></li>`).join('');
 
   /* ───── 경북 ───── */
   $('#gb30').textContent = ME.gbMotive30; $('#gb60').textContent = ME.gbMotive60;
@@ -125,7 +127,7 @@
   /* ───── 연습 ───── */
   (function practice() {
     let cur = null, timer = null, left = 60, total = 60;
-    const pools = { sa: () => Q.filter(q => !q.pred && !q.essay && q.n >= 3), e: () => Q.filter(q => q.group === '경험·공통' || q.essay), j: () => Q.filter(q => q.group === '직무'), p: () => Q.filter(q => q.pred), all: () => Q };
+    const pools = { sa: () => Q.filter(q => !q.pred && !q.essay && q.n >= 5), e: () => Q.filter(q => q.group === '경험·공통' || q.essay), j: () => Q.filter(q => q.group === '직무'), p: () => Q.filter(q => q.pred), all: () => Q };
     const reset = () => { total = left = +$('#sec').value; $('#ptime').textContent = left; $('#pbar').style.width = '100%'; $('#pbar').classList.remove('warn'); };
     const stop = () => { clearInterval(timer); timer = null; $('#pstart').textContent = '타이머 시작'; };
     const pick = () => { const pool = pools[$('#pool').value](); if (!pool.length) return; let q; do { q = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && cur && q.id === cur.id); cur = q; $('#pq').textContent = `Q${q.no}. ${q.q}`; $('#pmeta').innerHTML = `<span>${esc(q.cat)}</span>${q.pred ? '<span>예상</span>' : q.essay ? '<span>자소서</span>' : `<span>후기 ${q.n}곳</span>`}`; $('#ptipbox').hidden = true; stop(); reset(); };
@@ -139,7 +141,7 @@
   /* ───── 출처 ───── */
   (function sources() {
     const cnt = {}; Q.forEach(q => q.srcs.forEach(k => cnt[k] = (cnt[k] || 0) + 1));
-    const order = { '공채': 0, '모음': 1, '인턴': 2, '계약직': 3 };
+    const order = { '공채': 0, '모음': 1, '인턴': 2, '계약직': 3, '기타': 4 };
     const rows = [...SOURCES].sort((a, b) => order[a.type] - order[b.type] || (parseInt(b.yr) || 0) - (parseInt(a.yr) || 0));
     $('#srctable').innerHTML = `<thead><tr><th>시기</th><th>전형</th><th>출처</th><th class="n">유형</th></tr></thead><tbody>${rows.map(s => `<tr><td>${esc(s.yr)}</td><td>${esc(s.type)}</td><td><a href="${s.url}" target="_blank" rel="noopener">${esc(s.site)} · ${esc(s.title)}</a></td><td class="n">${cnt[s.k] || 0}</td></tr>`).join('')}</tbody>`;
     $('#refs').innerHTML = (window.REFS || []).map(r => `<li><a href="${r.url}" target="_blank" rel="noopener">${esc(r.t)}</a></li>`).join('');
