@@ -20,6 +20,9 @@
   const grade = q => q.essay ? '자소서' : q.pred ? '예상' : q.n >= 5 ? 'S' : q.n >= 3 ? 'A' : q.n === 2 ? 'B' : 'C';
   const gcls = g => ({ S: 'tS', A: 'tA', B: 'tB', C: 'tC' }[g] || 'tP');
   const ORDER = { '경험·공통': 0, '직무': 1, '시사·경북': 2, '자소서': 3 };
+  const RECENT = new Set(window.RECENT_SRC || []);
+  Q.forEach(q => { q.rec = q.srcs.filter(k => RECENT.has(k)); });
+  const srcLabel = k => { const s = S.get(k) || {}; return `${s.yr || ''} ${s.type || ''}${s.track === '기술' ? '(기술직)' : ''}`.trim(); };
   const SORT = (a, b) => ORDER[a.group] - ORDER[b.group] || b.n - a.n || a.q.localeCompare(b.q, 'ko');
   [...Q].sort(SORT).forEach((q, i) => { q.no = i + 1; });
   const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
@@ -80,7 +83,7 @@
     if (!a.s) return '<p class="empty">답변 없음</p>';
     return `<div class="ans4"><div class="say"><b>말할 답변</b><p>${esc(meText(a.s))}</p></div><div class="two"><div class="kk"><b>한전 연결</b><p>${esc(meText(a.k))}</p></div><div class="ee"><b>내 경험</b><p>${expLink(a.e)}</p></div></div>${a.f ? `<div class="ff"><b>꼬리질문 대비</b><p>${expLink(meText(a.f))}</p></div>` : ''}</div>`;
   }
-  const metaOf = q => q.essay ? '자소서 기반' : q.pred ? '기출 없음 · 예상' : `${q.iv} · 후기 ${q.n}곳`;
+  const metaOf = q => (q.essay ? '자소서 기반' : q.pred ? '기출 없음 · 예상' : `${q.iv} · 후기 ${q.n}곳`) + (q.rec && q.rec.length ? ` · 2025 하반기 이후 ${q.rec.length}곳` : '');
   function card(q, prefix) {
     const g = grade(q); const a = A[q.id] || {};
     const raw = (q.v && q.v.length) ? `<details class="raw"><summary>실제 질문 문장 ${q.v.length}개 · 정의 · 참고</summary><ul class="vlist">${q.v.map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('')}</ul>${q.def ? `<div class="defbox"><b>정의</b>${esc(q.def)}</div>` : ''}${q.tip ? `<div class="tipbox">${esc(q.tip)}</div>` : ''}</details>` : (q.tip ? `<details class="raw"><summary>참고</summary><div class="tipbox">${esc(q.tip)}</div></details>` : '');
@@ -96,19 +99,22 @@
     return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${vs}${def}${answerBody(a)}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
   }
   const state = { group: '전체', q: '' };
-  const GROUPS = ['전체', '경험·공통', '직무', '시사·경북', '자소서'];
-  $('#qaChips').innerHTML = GROUPS.map(g => `<button class="chip${g === '전체' ? ' on' : ''}" data-g="${g}">${g} ${g === '전체' ? Q.length : Q.filter(q => q.group === g).length}</button>`).join('');
+  const GROUPS = ['전체', '2025 하반기 이후', '경험·공통', '직무', '시사·경북', '자소서'];
+  const inGroup = (q, g) => g === '전체' || (g === '2025 하반기 이후' ? q.rec.length > 0 : q.group === g);
+  $('#qaChips').innerHTML = GROUPS.map(g => `<button class="chip${g === '전체' ? ' on' : ''}" data-g="${g}">${g} ${Q.filter(q => inGroup(q, g)).length}</button>`).join('');
   function renderQa() {
     const kw = state.q.trim().toLowerCase();
-    const list = Q.filter(q => state.group === '전체' || q.group === state.group)
+    const list = Q.filter(q => inGroup(q, state.group))
       .filter(q => !kw || [q.q, q.cat, ...(q.v || []).map(v => v[1]), (A[q.id] || {}).s, (A[q.id] || {}).k, (A[q.id] || {}).e, (A[q.id] || {}).f, 'q' + q.no].join(' ').toLowerCase().includes(kw))
-      .sort(SORT);
+      .sort(state.group === '2025 하반기 이후' ? ((a, b) => b.rec.length - a.rec.length || a.no - b.no) : SORT);
     $('#qaList').innerHTML = list.map(q => card(q)).join('') || '<p class="empty">결과 없음</p>';
     $('#qaCount').textContent = `${list.length}개`;
   }
   renderQa();
   $('#qaChips').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; state.group = b.dataset.g; $$('#qaChips .chip').forEach(c => c.classList.toggle('on', c === b)); renderQa(); });
   let t; $('#qaq').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { state.q = e.target.value; renderQa(); }, 120); });
+
+  $('#recentList').innerHTML = Q.filter(q => q.rec.length).sort((a, b) => b.rec.length - a.rec.length || a.no - b.no).map(q => `<li><a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q)}</a><small>${q.rec.length}곳 · ${q.rec.map(srcLabel).join(', ')}</small></li>`).join('');
 
   /* ───── 경북 ───── */
   $('#gb30').textContent = ME.gbMotive30; $('#gb60').textContent = ME.gbMotive60;
