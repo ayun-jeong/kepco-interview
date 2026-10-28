@@ -20,9 +20,12 @@
   const grade = q => q.essay ? '자소서' : q.pred ? '예상' : q.n >= 5 ? 'S' : q.n >= 3 ? 'A' : q.n === 2 ? 'B' : 'C';
   const gcls = g => ({ S: 'tS', A: 'tA', B: 'tB', C: 'tC' }[g] || 'tP');
   const ORDER = { '경험·공통': 0, '직무': 1, '시사·경북': 2, '자소서': 3 };
+  const SORT = (a, b) => ORDER[a.group] - ORDER[b.group] || b.n - a.n || a.q.localeCompare(b.q, 'ko');
+  [...Q].sort(SORT).forEach((q, i) => { q.no = i + 1; });
+  const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
 
   /* ───── 헤더 ───── */
-  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 설명·한전 연결·내 경험 3줄을 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄로 줄였고, 숫자 카드 ${MEMO.cards.length}장으로 외운다.`;
+  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 숫자 카드 ${MEMO.cards.length}장. 7번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
   const TL = [
     { d: '2026-10-27', t: '필기 합격 발표', s: '발표일 포함 3일 안에 자소서·증빙 제출' },
     { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자. 제출 전 따로 저장' },
@@ -43,7 +46,7 @@
   const meText = txt => String(txt == null ? '' : txt).replace(/ME\.(intro30|intro60|gbMotive30|gbMotive60)/g, (m, k) => ME[k]);
 
   /* ───── 이슈 암기 ───── */
-  const memoRow = x => `<div class="mrow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span></div><div class="mf">${esc(x.f)}</div><div class="ma"><b>답변</b>${esc(x.a)}</div>${x.e && EXP.has(x.e) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${x.e}">${esc(EXP.get(x.e).t)}</a> · ${esc(EXP.get(x.e).n)}</div>` : ''}</div>`;
+  const memoRow = x => `<div class="mrow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span></div><div class="mf">${esc(x.f)}</div><div class="ma"><b>답변</b>${esc(x.a)}</div>${x.e && EXP.has(x.e) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${x.e}">${esc(EXP.get(x.e).t)}</a> · ${esc(EXP.get(x.e).n)}</div>` : ''}${lines(2, 'mlines')}</div>`;
   $('#memoBasics').innerHTML = MEMO.basics.map(memoRow).join('');
   $('#memoDoing').innerHTML = MEMO.doing.map(memoRow).join('');
   $('#memoNews').innerHTML = MEMO.news.map(memoRow).join('');
@@ -69,12 +72,22 @@
 
   /* ───── 질문 카드 ───── */
   const srcBadge = k => { const s = S.get(k); if (!s) return ''; const cls = s.type === '공채' ? 'g' : s.type === '인턴' ? 'i' : 'c'; return `<a class="src ${cls}" href="${s.url}" target="_blank" rel="noopener">${esc(s.yr)} ${esc(s.type)}</a>`; };
+  function answerBody(a) {
+    if (!a.s) return '<p class="empty">답변 없음</p>';
+    return `<div class="ans4"><div class="say"><b>말할 답변</b><p>${esc(meText(a.s))}</p></div><div class="two"><div class="kk"><b>한전 연결</b><p>${esc(meText(a.k))}</p></div><div class="ee"><b>내 경험</b><p>${expLink(a.e)}</p></div></div>${a.f ? `<div class="ff"><b>꼬리질문 대비</b><p>${expLink(meText(a.f))}</p></div>` : ''}</div>`;
+  }
+  const metaOf = q => q.essay ? '자소서 기반' : q.pred ? '기출 없음 · 예상' : `${q.iv} · 후기 ${q.n}곳`;
   function card(q, prefix) {
     const g = grade(q); const a = A[q.id] || {};
-    const meta = q.essay ? '자소서 기반' : q.pred ? '기출 없음 · 예상' : `${q.iv} · 후기 ${q.n}곳`;
-    const body = a.s ? `<div class="a3"><div><b>설명 · 핵심</b><p>${esc(meText(a.s))}</p></div><div><b>한전 연결</b><p>${esc(meText(a.k))}</p></div><div><b>내 경험</b><p>${expLink(a.e)}</p></div></div>` : `<p class="empty">답변 방향 없음</p>`;
-    const raw = (q.v && q.v.length) ? `<details class="raw"><summary>실제 질문 문장 ${q.v.length}개 · 참고</summary><ul class="vlist">${q.v.map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('')}</ul>${q.def ? `<div class="defbox"><b>정의 (30초)</b>${esc(q.def)}</div>` : ''}${q.tip ? `<div class="tipbox">${esc(q.tip)}</div>` : ''}</details>` : (q.tip ? `<details class="raw"><summary>참고</summary><div class="tipbox">${esc(q.tip)}</div></details>` : '');
-    return `<details class="qa" id="${prefix || 'q'}-${q.id}"><summary><i class="t ${gcls(g)}">${g}</i><span class="qt">${esc(q.q)}</span><span class="qm">${meta} · ${esc(q.cat)}</span></summary><div class="qa-body">${body}${raw}</div></details>`;
+    const raw = (q.v && q.v.length) ? `<details class="raw"><summary>실제 질문 문장 ${q.v.length}개 · 정의 · 참고</summary><ul class="vlist">${q.v.map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('')}</ul>${q.def ? `<div class="defbox"><b>정의</b>${esc(q.def)}</div>` : ''}${q.tip ? `<div class="tipbox">${esc(q.tip)}</div>` : ''}</details>` : (q.tip ? `<details class="raw"><summary>참고</summary><div class="tipbox">${esc(q.tip)}</div></details>` : '');
+    return `<details class="qa" id="${prefix || 'q'}-${q.id}"><summary><i class="t ${gcls(g)}">${g}</i><span class="qt"><em class="qno">Q${q.no}</em>${esc(q.q)}</span><span class="qm">${metaOf(q)} · ${esc(q.cat)}</span></summary><div class="qa-body">${answerBody(a)}${raw}</div></details>`;
+  }
+  /* 인쇄용: 접히지 않는 블록 */
+  function printItem(q) {
+    const g = grade(q); const a = A[q.id] || {};
+    const vs = (q.v && q.v.length) ? `<ul class="pvlist">${q.v.map(([k, t]) => `<li>${esc((S.get(k) || {}).yr || '')} ${esc((S.get(k) || {}).type || '')} · ${esc(t)}</li>`).join('')}</ul>` : '';
+    const def = q.def ? `<div class="pdef"><b>정의</b>${esc(q.def)}</div>` : '';
+    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${vs}${def}${answerBody(a)}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
   }
   const state = { group: '전체', q: '' };
   const GROUPS = ['전체', '경험·공통', '직무', '시사·경북', '자소서'];
@@ -82,8 +95,8 @@
   function renderQa() {
     const kw = state.q.trim().toLowerCase();
     const list = Q.filter(q => state.group === '전체' || q.group === state.group)
-      .filter(q => !kw || [q.q, q.cat, ...(q.v || []).map(v => v[1]), (A[q.id] || {}).s, (A[q.id] || {}).k, (A[q.id] || {}).e].join(' ').toLowerCase().includes(kw))
-      .sort((a, b) => ORDER[a.group] - ORDER[b.group] || b.n - a.n || a.q.localeCompare(b.q));
+      .filter(q => !kw || [q.q, q.cat, ...(q.v || []).map(v => v[1]), (A[q.id] || {}).s, (A[q.id] || {}).k, (A[q.id] || {}).e, (A[q.id] || {}).f, 'q' + q.no].join(' ').toLowerCase().includes(kw))
+      .sort(SORT);
     $('#qaList').innerHTML = list.map(q => card(q)).join('') || '<p class="empty">결과 없음</p>';
     $('#qaCount').textContent = `${list.length}개`;
   }
@@ -93,7 +106,9 @@
 
   /* ───── 경북 ───── */
   $('#gb30').textContent = ME.gbMotive30; $('#gb60').textContent = ME.gbMotive60;
-  $('#gbQa').innerHTML = ['p_stay', 'relocate', 'p_local', 'p_elder', 'merge'].map(id => Q.find(q => q.id === id)).filter(Boolean).map(q => card(q, 'gbq')).join('');
+  const GBQ = ['p_why', 'p_stay', 'relocate', 'p_local', 'p_elder', 'merge'].map(id => Q.find(q => q.id === id)).filter(Boolean);
+  $('#gbQa').innerHTML = GBQ.filter(q => q.id !== 'p_why').map(q => card(q, 'gbq')).join('');
+  $('#gbNote').textContent = `경북 관련 질문은 5번 질문 모음에 답변과 함께 있다: ${GBQ.map(q => `Q${q.no} ${q.q}`).join(' / ')}`;
 
   /* ───── 연습 ───── */
   (function practice() {
@@ -101,11 +116,11 @@
     const pools = { sa: () => Q.filter(q => !q.pred && !q.essay && q.n >= 3), e: () => Q.filter(q => q.group === '경험·공통' || q.essay), j: () => Q.filter(q => q.group === '직무'), p: () => Q.filter(q => q.pred), all: () => Q };
     const reset = () => { total = left = +$('#sec').value; $('#ptime').textContent = left; $('#pbar').style.width = '100%'; $('#pbar').classList.remove('warn'); };
     const stop = () => { clearInterval(timer); timer = null; $('#pstart').textContent = '타이머 시작'; };
-    const pick = () => { const pool = pools[$('#pool').value](); if (!pool.length) return; let q; do { q = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && cur && q.id === cur.id); cur = q; $('#pq').textContent = q.q; $('#pmeta').innerHTML = `<span>${esc(q.cat)}</span>${q.pred ? '<span>예상</span>' : q.essay ? '<span>자소서</span>' : `<span>후기 ${q.n}곳</span>`}`; $('#ptipbox').hidden = true; stop(); reset(); };
+    const pick = () => { const pool = pools[$('#pool').value](); if (!pool.length) return; let q; do { q = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && cur && q.id === cur.id); cur = q; $('#pq').textContent = `Q${q.no}. ${q.q}`; $('#pmeta').innerHTML = `<span>${esc(q.cat)}</span>${q.pred ? '<span>예상</span>' : q.essay ? '<span>자소서</span>' : `<span>후기 ${q.n}곳</span>`}`; $('#ptipbox').hidden = true; stop(); reset(); };
     $('#pnext').addEventListener('click', pick);
     $('#pstart').addEventListener('click', () => { if (!cur) pick(); if (timer) { stop(); return; } $('#pstart').textContent = '멈춤'; timer = setInterval(() => { left--; $('#ptime').textContent = Math.max(0, left); $('#pbar').style.width = (left / total * 100) + '%'; if (left <= 10) $('#pbar').classList.add('warn'); if (left <= 0) { stop(); $('#ptime').textContent = '끝'; } }, 1000); });
     $('#sec').addEventListener('change', () => { stop(); reset(); });
-    $('#ptip').addEventListener('click', () => { if (!cur) return; const b = $('#ptipbox'); b.hidden = !b.hidden; if (b.hidden) return; const a = A[cur.id] || {}; b.innerHTML = a.s ? `<div class="a3"><div><b>설명</b><p>${esc(meText(a.s))}</p></div><div><b>한전 연결</b><p>${esc(meText(a.k))}</p></div><div><b>내 경험</b><p>${expLink(a.e)}</p></div></div><a href="#q-${cur.id}">카드로 가기 →</a>` : '답변 방향 없음'; });
+    $('#ptip').addEventListener('click', () => { if (!cur) return; const b = $('#ptipbox'); b.hidden = !b.hidden; if (b.hidden) return; const a = A[cur.id] || {}; b.innerHTML = a.s ? `${answerBody(a)}<a href="#q-${cur.id}">Q${cur.no} 카드로 가기</a>` : '답변 없음'; });
     reset();
   })();
 
@@ -116,6 +131,53 @@
     const rows = [...SOURCES].sort((a, b) => order[a.type] - order[b.type] || (parseInt(b.yr) || 0) - (parseInt(a.yr) || 0));
     $('#srctable').innerHTML = `<thead><tr><th>시기</th><th>전형</th><th>출처</th><th class="n">유형</th></tr></thead><tbody>${rows.map(s => `<tr><td>${esc(s.yr)}</td><td>${esc(s.type)}</td><td><a href="${s.url}" target="_blank" rel="noopener">${esc(s.site)} · ${esc(s.title)}</a></td><td class="n">${cnt[s.k] || 0}</td></tr>`).join('')}</tbody>`;
     $('#refs').innerHTML = (window.REFS || []).map(r => `<li><a href="${r.url}" target="_blank" rel="noopener">${esc(r.t)}</a></li>`).join('');
+  })();
+
+  /* ───── 인쇄 ───── */
+  (function printer() {
+    const GL = ['경험·공통', '직무', '시사·경북', '자소서'];
+    const GH = { '경험·공통': '경험면접 · 공통 질문', '직무': '직무면접 · 전공·직무 질문', '시사·경북': '시사 · 경북 · 민원 상황 (예상)', '자소서': '자소서 꼬리질문' };
+    $('#printQa').innerHTML = GL.map(g => { const list = Q.filter(q => q.group === g).sort(SORT); return `<div class="pgrp" data-g="${g}"><h3 class="pgh">${GH[g]} <small>${list.length}개 · Q${list[0].no}~Q${list[list.length - 1].no}</small></h3>${list.map(printItem).join('')}</div>`; }).join('');
+    const SECS = [['struct', '1. 면접 한눈에'], ['me', '2. 내 경험 · 자기소개'], ['memo', '3. 이슈 암기'], ['gb', '4. 경북 지역전문사원']];
+    const DEF = { secs: ['struct', 'me', 'memo', 'gb'], groups: GL.slice(), mode: 'note', ln: 4, vs: false };
+    let st = DEF;
+    try { st = Object.assign({}, DEF, JSON.parse(localStorage.getItem('kepco.print') || '{}')); } catch (e) { }
+    const qs = new URLSearchParams(location.search);
+    if (qs.has('p')) { const p = qs.get('p').split(',').filter(Boolean); st = Object.assign({}, st, { secs: p.filter(x => SECS.some(s => s[0] === x)), groups: p.filter(x => GL.includes(x)) }); }
+    if (qs.has('mode')) st.mode = qs.get('mode') === 'blank' ? 'blank' : 'note';
+    if (qs.has('ln')) st.ln = +qs.get('ln') || 0;
+    if (qs.has('vs')) st.vs = qs.get('vs') === '1';
+    const cnt = g => Q.filter(q => q.group === g).length;
+    $('#prSecs').innerHTML = SECS.map(([k, t]) => `<label><input type="checkbox" data-sec="${k}"> ${t}</label>`).join('') + GL.map(g => `<label><input type="checkbox" data-grp="${g}"> 5. 질문 · ${g} <small>${cnt(g)}개</small></label>`).join('');
+    const apply = () => {
+      SECS.forEach(([k]) => $('#' + k).classList.toggle('noprint', !st.secs.includes(k)));
+      $$('#printQa .pgrp').forEach(el => el.classList.toggle('noprint', !st.groups.includes(el.dataset.g)));
+      $('#qa').classList.toggle('noprint', !st.groups.length);
+      document.body.classList.toggle('pm-blank', st.mode === 'blank');
+      document.body.classList.toggle('pv-on', !!st.vs);
+      document.body.dataset.ln = st.mode === 'blank' ? Math.max(st.ln, 8) : st.ln;
+      $$('#prSecs [data-sec]').forEach(i => i.checked = st.secs.includes(i.dataset.sec));
+      $$('#prSecs [data-grp]').forEach(i => i.checked = st.groups.includes(i.dataset.grp));
+      $$('input[name=prMode]').forEach(i => i.checked = i.value === st.mode);
+      $('#prLn').value = String(st.ln); $('#prVs').checked = !!st.vs;
+      const nq = Q.filter(q => st.groups.includes(q.group)).length;
+      $('#prSum').textContent = `질문 ${nq}개${st.secs.length ? ` + 정리 ${st.secs.length}개 섹션` : ''} · ${st.mode === 'blank' ? '답을 가리고 쓰는 줄을 크게' : `답변 전부 + 메모 ${st.ln}줄`}`;
+      try { localStorage.setItem('kepco.print', JSON.stringify(st)); } catch (e) { }
+    };
+    $('#print').addEventListener('change', e => {
+      const i = e.target;
+      if (i.dataset.sec) st.secs = SECS.map(s => s[0]).filter(k => k === i.dataset.sec ? i.checked : st.secs.includes(k));
+      else if (i.dataset.grp) st.groups = GL.filter(g => g === i.dataset.grp ? i.checked : st.groups.includes(g));
+      else if (i.name === 'prMode') st.mode = i.value;
+      else if (i.id === 'prLn') st.ln = +i.value;
+      else if (i.id === 'prVs') st.vs = i.checked;
+      apply();
+    });
+    $('#prAll').addEventListener('click', () => { st = Object.assign({}, st, { secs: SECS.map(s => s[0]), groups: GL.slice() }); apply(); });
+    $('#prQaOnly').addEventListener('click', () => { st = Object.assign({}, st, { secs: [], groups: GL.slice() }); apply(); });
+    $('#prGo').addEventListener('click', () => window.print());
+    $$('[data-print-go]').forEach(b => b.addEventListener('click', () => { location.hash = '#print'; }));
+    apply();
   })();
 
   $('#upd').textContent = `자료 기준일 ${UPDATED}.`;

@@ -465,3 +465,114 @@ footer p+p{margin-top:8px}
 .raw>summary{font-size:12.5px;color:var(--tx3);font-weight:600;cursor:pointer}
 .raw .vlist{margin-top:6px}
 .tP{background:var(--p-bg);color:var(--p);min-width:34px}
+
+/* v3: 4칸 답변 · 인쇄 패널 */
+.qno{font-style:normal;color:var(--tx3);font-weight:800;margin-right:7px;font-variant-numeric:tabular-nums}
+.ans4{display:grid;gap:10px}
+.ans4 b{display:block;font-size:11px;letter-spacing:.05em;margin-bottom:4px}
+.ans4 .say{background:var(--j-bg);border-radius:10px;padding:12px 14px}
+.ans4 .say b{color:var(--j)}
+.ans4 .say p{font-size:14.5px;line-height:1.8;color:var(--tx)}
+.ans4 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.ans4 .two>div,.ans4 .ff{background:var(--bg3);border-radius:10px;padding:10px 12px}
+.ans4 .kk b{color:var(--e)}
+.ans4 .ee b{color:var(--c)}
+.ans4 .ff b{color:var(--p)}
+.ans4 p{font-size:13.5px;line-height:1.65}
+.ptipbox .ans4{margin-bottom:10px}
+.printonly,.lines{display:none}
+.prcard{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.prcol{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);display:grid;gap:8px;align-content:start}
+.prl{font-size:11.5px;letter-spacing:.05em;color:var(--j)}
+.prsecs{display:grid;gap:6px}
+.prsecs label,.prrow{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.prsecs small{margin-left:auto}
+.prrow select{height:34px;border:1px solid var(--line2);border-radius:8px;background:var(--bg2);color:var(--tx);padding:0 8px;font:inherit;font-size:13.5px}
+.radio{display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.radio:has(input:checked){border-color:var(--j);background:var(--j-bg)}
+.radio input{margin-top:4px}
+.radio span{font-size:13px;color:var(--tx2);line-height:1.5}
+.radio span b{display:block;font-size:14px;color:var(--tx)}
+.prquick{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.prgo{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:12px}
+.prgo span{font-size:13.5px;color:var(--tx2)}
+
+@media print{
+  @page{size:A4;margin:12mm 12mm 13mm}
+  :root{--bg:#fff;--bg2:#fff;--bg3:#fff;--line:#bbb;--line2:#999;--tx:#000;--tx2:#222;--tx3:#555;
+    --j:#000;--j-bg:#fff;--e:#333;--e-bg:#fff;--c:#333;--c-bg:#fff;--p:#333;--p-bg:#fff;--shadow:none}
+  html{scroll-behavior:auto}
+  body{background:#fff;color:#000;font-size:10pt;line-height:1.5;-webkit-print-color-adjust:economy;print-color-adjust:economy}
+  nav,#practice,#src,#print,.alert,.timeline,header .lead,.fc,#memo .sub:last-of-type,.ctrl,#qaList,#gbQa,.screenonly,.noprint{display:none!important}
+  .printonly{display:block!important}
+  .wrap{max-width:none;padding:0}
+  header{padding:0 0 3mm;border-bottom:2px solid #000;margin-bottom:4mm}
+  header h1{font-size:15pt} header h1 br{display:none}
+  .eyebrow{font-size:8.5pt}
+  section{padding:0!important;border:0!important}
+  #memo,#gb,#qa{break-before:page}
+  #me{margin-top:6mm!important}
+  .shead{margin-bottom:3mm}
+  .shead h2{font-size:14pt}
+  .shead p{font-size:8.5pt;max-width:none}
+  .sub{font-size:11pt;margin:4mm 0 2mm;break-after:avoid}
+  .fact,.ccard,.introbox>div,.exp,.mrow{box-shadow:none;border:1px solid #999;border-radius:2mm;break-inside:avoid;padding:2.5mm 3mm}
+  .facts{grid-template-columns:repeat(2,1fr);gap:2mm;margin-top:2mm}
+  .fact b{font-size:10.5pt}
+  .fact p,.ccard p,.exp p,.mrow .mf,.mrow .ma,.mrow .mex,.introbox p{font-size:9pt;line-height:1.5;color:#000}
+  .introbox{grid-template-columns:1fr;gap:2mm;margin-bottom:3mm}
+  .exps{grid-template-columns:repeat(2,1fr);gap:2mm}
+  .ehead h3{font-size:10pt}
+  .enum{margin:1mm 0;font-size:9pt}
+  .etags{display:none}
+  .memo{gap:1.5mm}
+  .mrow{grid-template-columns:40mm 1fr;gap:1mm 4mm}
+  .mrow .mt b{font-size:10pt}
+  .gbgrid{gap:2mm}
+  .ccard ul.plain{font-size:9pt}
+  .offices i{border:1px solid #999;background:#fff!important;color:#000!important}
+  a{text-decoration:none;color:inherit}
+  .elink{color:#000;font-weight:700}
+  .pnote{font-size:9pt;margin-top:3mm;border:1px dashed #999;padding:2mm 3mm}
+  .pgrp+.pgrp{break-before:page}
+  .pgh{font-size:12.5pt;border-bottom:2px solid #000;padding-bottom:1.5mm;margin:0 0 1mm;break-after:avoid}
+  .pgh small{font-size:8.5pt;color:#444}
+  .pitem{border-bottom:1px solid #999;padding:3mm 0 3.5mm}
+  .phead,.pvlist,.pdef,.ans4 .say,.ans4 .two,.ans4 .ff{break-inside:avoid}
+  .phead,.pwrite>b{break-after:avoid}
+  .pm-blank .pitem{break-inside:avoid;padding:2.5mm 0 2.5mm}
+  .pm-blank .lines i{height:6.8mm}
+  .pm-blank .pwrite{margin-top:.5mm}
+  .pm-blank .ans4 .ee{padding:1mm 2.5mm}
+  .phead{display:grid;grid-template-columns:auto auto 1fr;gap:.5mm 2mm;align-items:center;margin-bottom:1.5mm}
+  .phead h4{font-size:11pt;line-height:1.35}
+  .phead .pm{grid-column:3;font-size:7.5pt;color:#555}
+  .pno{font-weight:800;font-size:11pt;font-variant-numeric:tabular-nums}
+  .t{border:1px solid #000;background:#fff!important;color:#000!important;height:auto;padding:0 1.5mm;font-size:8pt}
+  .pvlist{display:none;font-size:8pt;color:#333;margin:0 0 1.5mm;padding-left:4mm}
+  .pv-on .pvlist{display:block}
+  .pdef{font-size:9pt;border:1px dashed #999;padding:1.5mm 2.5mm;margin:0 0 1.5mm;line-height:1.5}
+  .pdef b{font-size:7.5pt;margin-right:2mm;color:#444}
+  .ans4{gap:1.5mm}
+  .ans4 b{font-size:7.5pt;color:#444!important;margin-bottom:.5mm}
+  .ans4 .say{background:#fff;border-left:1mm solid #000;border-radius:0;padding:.5mm 0 .5mm 3mm}
+  .ans4 .say p{font-size:10pt;line-height:1.6}
+  .ans4 .two{grid-template-columns:1.4fr 1fr;gap:1.5mm}
+  .ans4 .two>div,.ans4 .ff{background:#fff;border:1px solid #bbb;border-radius:1.5mm;padding:1.2mm 2.5mm}
+  .ans4 p{font-size:8.5pt;line-height:1.45}
+  .pwrite{margin-top:1.5mm}
+  .pwrite>b{font-size:7.5pt;color:#555}
+  .lines{display:block}
+  .lines i{display:block;height:7.5mm;border-bottom:1px solid #999}
+  body[data-ln="0"] .pwrite{display:none}
+  body[data-ln="2"] .pwrite .lines i:nth-child(n+3),
+  body[data-ln="4"] .pwrite .lines i:nth-child(n+5),
+  body[data-ln="6"] .pwrite .lines i:nth-child(n+7),
+  body[data-ln="8"] .pwrite .lines i:nth-child(n+9){display:none}
+  .mlines{display:none!important}
+  .pm-blank .mlines{display:block!important;grid-column:2}
+  .pm-blank .pitem .say,.pm-blank .pitem .kk,.pm-blank .pitem .ff,.pm-blank .pitem .pdef,.pm-blank .mrow .ma{display:none!important}
+  .pm-blank .pitem .two{display:block}
+  footer{font-size:8pt;border:0;padding:4mm 0 0}
+}
