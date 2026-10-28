@@ -28,7 +28,8 @@
   const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
 
   /* ───── 헤더 ───── */
-  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장. 8번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
+  const AX = window.AIX || { now: [], ideas: { internal: [], public: [] } };
+  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장, 한전 AI 현황 ${AX.now.length}줄과 내 AI 아이디어 ${AX.ideas.internal.length + AX.ideas.public.length}개. 8번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
   const TL = [
     { d: '2026-10-27', t: '필기 합격 발표', s: '발표일 포함 3일 안에 자소서·증빙 제출' },
     { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자. 제출 전 따로 저장' },
@@ -131,6 +132,21 @@
       + `<div class="gbgrid"><div class="ccard"><span class="lbl">필요기술 → 내 증거</span><ul class="plain jdpair">${J.skill.map(pair).join('')}</ul></div>`
       + `<div class="ccard"><span class="lbl">직무수행태도 10 → 내 증거</span><ul class="plain jdpair">${J.attitude.map(pair).join('')}</ul></div></div>`
       + `<div class="ccard"><span class="lbl">직업기초능력 · 필요자격</span><ul class="plain"><li><b>직업기초능력</b> ${esc(J.basic)}</li><li><b>필요자격</b> ${esc(J.qual)}</li></ul></div>`;
+  })();
+
+  /* ───── AI 한 곳 ───── */
+  (function aix() {
+    const X = window.AIX, elN = $('#aixNow'), elI = $('#aixIdeas'); if (!X || !elN || !elI) return;
+    const QB = new Map(Q.map(q => [q.id, q]));
+    const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
+    const exp = k => k && EXP.has(k) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a> · ${esc(EXP.get(k).n)}</div>` : '';
+    elN.innerHTML = `<p class="subp">${esc(X.intro)}</p><div class="memo">` + X.now.map(x => `<div class="mrow arow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span><small class="aw">${esc(x.w)}</small></div><div class="mf">${esc(x.f)}</div><div class="ma"><b>사무직</b>${expLink(x.a)}</div>${exp(x.e)}<div class="mex aq jdq">${ql(x.ids)}</div>${lines(2, 'mlines')}</div>`).join('') + `</div>`;
+    const idea = pfx => (x, i) => `<div class="ccard idea"><span class="lbl">${pfx} ${i + 1}</span><h4>${esc(x.t)}</h4><p><b>불편</b>${esc(x.p)}</p><p><b>어떻게</b>${esc(x.h)}</p><p><b>한전 위에</b>${esc(x.l)}</p><p><b>내 경험</b>${expLink(x.e)}</p><p><b>꼬리</b>${esc(x.f)}</p></div>`;
+    elI.innerHTML = `<p class="subp">${esc(X.frame)}</p>`
+      + `<h4 class="ideah">안에서 효율 ${X.ideas.internal.length} · 지사 사무직의 시간을 줄이는 것</h4><div class="ideas">${X.ideas.internal.map(idea('안에서 효율')).join('')}</div>`
+      + `<h4 class="ideah">국민 편의 ${X.ideas.public.length} · 고객이 먼저 느끼는 것</h4><div class="ideas">${X.ideas.public.map(idea('국민 편의')).join('')}</div>`
+      + `<div class="ccard aicav"><span class="lbl">AI를 말할 때 같이 준비할 것 · 꼬리질문 6</span><ul class="plain">${X.caveats.map(([t, u]) => `<li><b>${esc(t)}</b> ${expLink(u)}</li>`).join('')}</ul></div>`
+      + `<div class="ccard aisrc"><span class="lbl">출처 ${X.src.length} · 2026.10.29 조사 · “어디서 봤나” 꼬리질문엔 매체 이름으로</span><p class="links">${X.src.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${esc(t)}</a>`).join(' · ')}</p></div>`;
   })();
 
   /* ───── 경북 ───── */
