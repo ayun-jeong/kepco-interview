@@ -25,7 +25,7 @@
   const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
 
   /* ───── 헤더 ───── */
-  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 선배 인터뷰 ${(MEMO.video || []).length}줄, 숫자 카드 ${MEMO.cards.length}장. 7번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
+  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장. 7번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
   const TL = [
     { d: '2026-10-27', t: '필기 합격 발표', s: '발표일 포함 3일 안에 자소서·증빙 제출' },
     { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자. 제출 전 따로 저장' },
@@ -52,6 +52,7 @@
   $('#memoNews').innerHTML = MEMO.news.map(memoRow).join('');
   $('#memoDict').innerHTML = (MEMO.dict || []).map(memoRow).join('');
   $('#memoVideo').innerHTML = (MEMO.video || []).map(memoRow).join('');
+  $('#memoVideo2').innerHTML = (MEMO.video2 || []).map(memoRow).join('');
   $('#cardList').innerHTML = MEMO.cards.map(([q, a]) => `<li><b>${esc(q)}</b><span>${esc(a)}</span></li>`).join('');
 
   (function cards() {
