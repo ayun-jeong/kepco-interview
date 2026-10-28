@@ -35,6 +35,9 @@ window.SOURCES = [
 
 /* 질문은 없지만 면접 구조·일정·이슈 근거로 쓴 자료 */
 window.REFS = [
+  { t: '호랭몬 「2026 하반기 한국전력공사 무료 면접특강」 자료(사용자 제공 PDF, 61쪽): 한전 인사담당자 인터뷰, 사무직 사업소 업무, 2026 상반기 사무 합격자 복기, 마일리지·발령', url: 'https://blog.naver.com/glindaway' },
+  { t: '2026 하반기 공고 사무 직무기술서(사용자 제공 원문). 직무 내용은 2024 보훈채용 붙임4와 같고 필요자격만 어학 700점', url: 'https://www.alio.go.kr/download/download.json?fileNo=2852311' },
+  { t: '한전 AI 고독사 예방(1인 가구 안부살핌) 84개 지자체·12명 구조 (이투데이, 2025.4.8)', url: 'https://www.etoday.co.kr/news/view/2460123' },
   { t: '한전 공식 유튜브 · [전기 ZIP] Ep7. 3대 메가프로젝트 성장에 필요한 전력, 한전은 어떻게 준비할까요? (2026.9.30)', url: 'https://www.youtube.com/watch?v=uyAuXrC-jBs' },
   { t: '한전 공식 유튜브 · [1부] 한전 합격 선배들의 직무&면접 꿀팁 (사무·배전·송변전, 2025.9.15)', url: 'https://www.youtube.com/watch?v=hQWvzTs4q-g' },
   { t: '2025 하반기 신입사원 채용공고 원문(PDF): 면접 평가내용·자소서 양식·블라인드 규칙', url: 'https://www.liveinkorea.kr/download.do?uuid=c9f3040f-eaad-4411-9a3b-f8d5315ae40e.pdf' },

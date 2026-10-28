@@ -3,7 +3,7 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const UPDATED = '2026-10-28';
+  const UPDATED = '2026-10-29';
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
   const S = new Map(SOURCES.map(s => [s.k, s]));
   const CAT = new Map(CATS.map(c => [c.k, c]));
@@ -14,7 +14,7 @@
   const Q = QUESTIONS.map(q => {
     const srcs = [...new Set((q.v || []).map(v => v[0]))];
     const iv = q.pred ? '예상' : CAT.get(q.cat).iv;
-    return Object.assign({}, q, { srcs, n: srcs.length, iv, group: q.pred ? '시사·경북' : (iv === '직무' ? '직무' : '경험·공통') });
+    return Object.assign({}, q, { srcs, n: srcs.length, iv, group: q.grp || (q.pred ? '시사·경북' : (iv === '직무' ? '직무' : '경험·공통')) });
   });
   Object.entries(window.ESSAY_FOLLOWUPS || {}).forEach(([no, list]) => list.forEach((t, i) => Q.push({ id: `ef${no}_${i}`, cat: '자소서 꼬리', q: `[자소서 ${no}번] ${t}`, v: [], srcs: [], n: 0, iv: '경험', group: '자소서', essay: true })));
   const grade = q => q.essay ? '자소서' : q.pred ? '예상' : q.n >= 10 ? 'S' : q.n >= 5 ? 'A' : q.n >= 2 ? 'B' : 'C';
@@ -117,6 +117,21 @@
   const RECENT_Q = Q.filter(q => q.rec.length).sort((a, b) => b.rec.length - a.rec.length || a.no - b.no);
   $('#recentNote').textContent = `최근 후기에서 나온 질문 ${RECENT_Q.length}개 중 많이 나온 30개. 나머지는 5번 질문 모음의 “2025 하반기 이후” 칩에서 본다.`;
   $('#recentList').innerHTML = RECENT_Q.slice(0, 30).map(q => `<li><a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q)}</a><small>${q.rec.length}곳 · ${[...new Set(q.rec.map(srcLabel))].join(', ')}</small></li>`).join('');
+
+  /* ───── 직무기술서 ───── */
+  (function jobdesc() {
+    const J = window.JOBDESC, el = $('#jdBlock'); if (!J || !el) return;
+    const QB = new Map(Q.map(q => [q.id, q]));
+    const ql = ids => ids.map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
+    const row = (t, w, u, ids) => `<li><div class="jdt"><b>${esc(t)}</b>${w ? `<span>${esc(w)}</span>` : ''}</div><p>${expLink(u)}</p><p class="jdq">${ql(ids)}</p></li>`;
+    const pair = ([t, u]) => `<li><b>${esc(t)}</b><span>${expLink(u)}</span></li>`;
+    el.innerHTML = `<p class="subp">${esc(J.where)}</p>`
+      + `<div class="ccard"><span class="lbl">직무수행내용 12 · 원문 → 어디서 → 말할 거리 → 관련 질문</span><ol class="jdlist">${J.work.map(r => row(...r)).join('')}</ol></div>`
+      + `<div class="ccard"><span class="lbl">필요지식 4분야</span><ul class="jdlist">${J.know.map(([a, t, u, ids]) => row(`(${a}) ${t}`, '', u, ids)).join('')}</ul></div>`
+      + `<div class="gbgrid"><div class="ccard"><span class="lbl">필요기술 → 내 증거</span><ul class="plain jdpair">${J.skill.map(pair).join('')}</ul></div>`
+      + `<div class="ccard"><span class="lbl">직무수행태도 10 → 내 증거</span><ul class="plain jdpair">${J.attitude.map(pair).join('')}</ul></div></div>`
+      + `<div class="ccard"><span class="lbl">직업기초능력 · 필요자격</span><ul class="plain"><li><b>직업기초능력</b> ${esc(J.basic)}</li><li><b>필요자격</b> ${esc(J.qual)}</li></ul></div>`;
+  })();
 
   /* ───── 경북 ───── */
   $('#gb30').textContent = ME.gbMotive30; $('#gb60').textContent = ME.gbMotive60;
