@@ -219,13 +219,75 @@
     reset();
   })();
 
+  /* ───── 암기 노트 ───── */
+  (function notes() {
+    const NOTES = window.NOTES || []; const box = $('#notesBox'); if (!box || !NOTES.length) return;
+    const hl = (t, kw) => { t = esc(t); if (!kw) return t; const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'); return t.replace(re, m => `<mark>${m}</mark>`); };
+    let allOpen = false;
+    function render(kw) {
+      kw = (kw || '').trim(); const k = kw.toLowerCase(); let n = 0;
+      box.innerHTML = NOTES.map((o, i) => {
+        const text = [o.title, o.line, ...o.keys.flat(), ...o.pts, o.say].join(' ').toLowerCase();
+        if (k && !text.includes(k)) return ''; n++;
+        return `<details class="note"${(k || allOpen || i === 0) ? ' open' : ''}><summary><h3>${hl(o.title, kw)}</h3><span class="nk">숫자 ${o.keys.length} · 카드 ${o.cards.length}</span><p class="nline">${hl(o.line, kw)}</p></summary>
+          <div class="nbody"><h5>핵심 숫자</h5><table class="keys">${o.keys.map(([a, b]) => `<tr><td>${hl(a, kw)}</td><td>${hl(b, kw)}</td></tr>`).join('')}</table>
+          <h5>외울 포인트</h5><ul>${o.pts.map(p => `<li>${hl(p, kw)}</li>`).join('')}</ul>
+          <div class="say"><b>이렇게 말한다</b>${hl(o.say, kw)}</div></div></details>`;
+      }).join('') || `<p class="empty">검색 결과가 없다.</p>`;
+      $('#ncount').textContent = k ? `${n}개 주제에서 발견` : `${NOTES.length}개 주제`;
+    }
+    render('');
+    let t; $('#nq').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => render(e.target.value), 120); });
+    $('#nall').addEventListener('click', () => { allOpen = !allOpen; $$('#notesBox .note').forEach(d => d.open = allOpen); $('#nall').textContent = allOpen ? '모두 접기' : '모두 펼치기'; });
+
+    /* 플래시카드 */
+    const ALL = NOTES.flatMap(o => o.cards.map(([q, a], j) => ({ id: o.id + ':' + j, topic: o.id, title: o.title, q, a })));
+    let known = new Set(); try { known = new Set(JSON.parse(localStorage.getItem('kepco.cards') || '[]')); } catch (e) { }
+    const saveK = () => { try { localStorage.setItem('kepco.cards', JSON.stringify([...known])); } catch (e) { } };
+    $('#fcTopic').innerHTML = `<option value="">전체 주제 (${ALL.length}장)</option>` + NOTES.map(o => `<option value="${o.id}">${esc(o.title)} (${o.cards.length})</option>`).join('');
+    let deck = [], pos = -1, flipped = false;
+    const pool = () => ALL.filter(c => (!$('#fcTopic').value || c.topic === $('#fcTopic').value) && (!$('#fcSkip').checked || !known.has(c.id)));
+    const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const prog = () => { const p = pool(); const tp = ALL.filter(c => !$('#fcTopic').value || c.topic === $('#fcTopic').value); $('#fcProg').textContent = `${pos >= 0 && deck.length ? pos + 1 : 0}/${deck.length} · 외운 카드 ${tp.filter(c => known.has(c.id)).length}/${tp.length}`; };
+    const show = () => {
+      const c = deck[pos]; const card = $('#fcCard'); flipped = false; card.classList.remove('flip');
+      if (!c) { $('#fcLbl').textContent = '끝'; $('#fcText').textContent = deck.length ? '마지막 카드입니다. 섞기를 누르면 다시 시작' : '이 조건에 남은 카드가 없다. 주제를 바꾸거나 건너뛰기를 끄세요.'; prog(); return; }
+      $('#fcLbl').textContent = `질문 · ${c.title}`; $('#fcText').textContent = c.q; prog();
+    };
+    const rebuild = () => { deck = shuffle(pool()); pos = deck.length ? 0 : -1; show(); };
+    $('#fcCard').addEventListener('click', () => { const c = deck[pos]; if (!c) return; flipped = !flipped; $('#fcCard').classList.toggle('flip', flipped); $('#fcLbl').textContent = flipped ? '답' : `질문 · ${c.title}`; $('#fcText').textContent = flipped ? c.a : c.q; });
+    $('#fcNext').addEventListener('click', () => { if (pos < 0) { rebuild(); return; } pos = Math.min(pos + 1, deck.length); show(); });
+    $('#fcPrev').addEventListener('click', () => { if (pos > 0) { pos--; show(); } });
+    $('#fcShuffle').addEventListener('click', rebuild);
+    $('#fcKnow').addEventListener('click', () => { const c = deck[pos]; if (!c) return; known.add(c.id); saveK(); if ($('#fcSkip').checked) { deck.splice(pos, 1); if (pos >= deck.length) pos = deck.length; } else pos = Math.min(pos + 1, deck.length); show(); });
+    $('#fcReset').addEventListener('click', () => { known = new Set(); saveK(); rebuild(); });
+    $('#fcTopic').addEventListener('change', rebuild); $('#fcSkip').addEventListener('change', rebuild);
+    $('#fcText').textContent = '다음을 눌러 시작'; prog();
+  })();
+
+  /* ───── 시사 이슈 ───── */
+  (function issues() {
+    if (!window.ISSUES) return;
+    $('#tpl').innerHTML = (window.ANSWER_TEMPLATE || []).map(([a, b], i) => `<div><b><i>${i + 1}</i>${esc(a)}</b><span>${esc(b)}</span></div>`).join('');
+    $('#kn').innerHTML = (window.KEPCO_NEWS || []).map(n => `<article class="kcard"><div class="d">${esc(n.d)} · ${esc(n.src)}</div><h4>${esc(n.t)}</h4><ul>${n.pts.map(p => `<li>${esc(p)}</li>`).join('')}</ul><div class="say"><b>이렇게 말한다</b>${esc(n.say)}</div></article>`).join('');
+    const nt = Object.fromEntries((window.NOTES || []).map(o => [o.id, o.title]));
+    $('#iss').innerHTML = window.ISSUES.map((x, i) => `<details class="icard2"${i === 0 ? ' open' : ''}><summary><span class="tag">${esc(x.tag)}</span><h4>${esc(x.title)}</h4></summary>
+      <div class="ibody">
+        <div><h5>뉴스 요약</h5><ul>${x.news.map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>
+        <div><h5>외울 숫자</h5><table class="keys">${x.num.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')}</table></div>
+        <div><h5>한전에 미치는 영향</h5><ul class="pm">${x.plus.map(p => `<li class="p">＋ ${esc(p)}</li>`).join('')}${x.minus.map(p => `<li class="m">－ ${esc(p)}</li>`).join('')}</ul></div>
+        <div><h5>나올 질문</h5><ul class="qs">${x.qs.map(q => `<li>${esc(q)}</li>`).join('')}</ul><h5 style="margin-top:10px">연결 노트</h5><ul>${(x.notes || []).map(k => `<li>${esc(nt[k] || k)}</li>`).join('')}</ul></div>
+        <div class="ans"><h5>답변 구조 (20~40초)</h5><ol><li><b>결론</b>${esc(x.answer.claim)}</li><li><b>근거</b>${esc(x.answer.facts)}</li><li><b>한전 영향</b>${esc(x.answer.impact)}</li><li><b>대응·제안</b>${esc(x.answer.action)}</li><li><b>내 역할</b>${esc(x.answer.role)}</li></ol></div>
+      </div></details>`).join('');
+  })();
+
   /* ───── 홈페이지 지도 ───── */
   (function sitemap() {
     const SITE = window.SITE, PTS = window.SITE_POINTS || {};
     const box = $('#sitemenus'); if (!SITE || !SITE.menus || !box) return;
     const nPages = SITE.menus.reduce((a, m) => a + m.pages.length, 0);
     const nFacts = SITE.menus.reduce((a, m) => a + m.pages.reduce((b, p) => b + (p.facts || []).length + (p.fine || []).length, 0), 0);
-    $('#siteLead').textContent = `kepco.co.kr의 메뉴 페이지 ${nPages}개를 내려받아 정리했다(${SITE.fetched} 기준). 사실·수치·각주 ${nFacts}줄을 담았고, 메뉴마다 면접에서 쓸 포인트를 위에 두었다. 면접관은 "홈페이지 봤나"를 자주 확인한다.`;
+    $('#siteLead').textContent = `${nPages}개 페이지 · 사실·각주 ${nFacts}줄 (${SITE.fetched} 수집). 메뉴별 면접 포인트 포함.`;
     const hl = (t, kw) => { t = esc(t); if (!kw) return t; const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'); return t.replace(re, m => `<mark>${m}</mark>`); };
     function render(kw) {
       kw = (kw || '').trim(); const k = kw.toLowerCase(); let shown = 0;
