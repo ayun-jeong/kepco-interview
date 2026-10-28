@@ -35,6 +35,7 @@ window.SOURCES = [
 
 /* 질문은 없지만 면접 구조·일정·이슈 근거로 쓴 자료 */
 window.REFS = [
+  { t: '한전 공식 유튜브 · [1부] 한전 합격 선배들의 직무&면접 꿀팁 (사무·배전·송변전, 2025.9.15)', url: 'https://www.youtube.com/watch?v=hQWvzTs4q-g' },
   { t: '2025 하반기 신입사원 채용공고 원문(PDF): 면접 평가내용·자소서 양식·블라인드 규칙', url: 'https://www.liveinkorea.kr/download.do?uuid=c9f3040f-eaad-4411-9a3b-f8d5315ae40e.pdf' },
   { t: '2026 하반기 채용 요약(일정·배점 50:50)', url: 'https://www.addto.co.kr/contents/recruitment/2026-%ED%95%9C%EA%B5%AD%EC%A0%84%EB%A0%A5%EA%B3%B5%EC%82%AC-20260902080404' },
   { t: '2026 하반기 490명 채용 기사(지역전문사원 경북 27명)', url: 'https://www.outsourcing.co.kr/news/articleView.html?idxno=203685' },

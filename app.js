@@ -25,7 +25,7 @@
   const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
 
   /* ───── 헤더 ───── */
-  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 숫자 카드 ${MEMO.cards.length}장. 7번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
+  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 선배 인터뷰 ${(MEMO.video || []).length}줄, 숫자 카드 ${MEMO.cards.length}장. 7번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
   const TL = [
     { d: '2026-10-27', t: '필기 합격 발표', s: '발표일 포함 3일 안에 자소서·증빙 제출' },
     { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자. 제출 전 따로 저장' },
@@ -46,10 +46,13 @@
   const meText = txt => String(txt == null ? '' : txt).replace(/ME\.(intro30|intro60|gbMotive30|gbMotive60)/g, (m, k) => ME[k]);
 
   /* ───── 이슈 암기 ───── */
-  const memoRow = x => `<div class="mrow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span></div><div class="mf">${esc(x.f)}</div><div class="ma"><b>답변</b>${esc(x.a)}</div>${x.e && EXP.has(x.e) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${x.e}">${esc(EXP.get(x.e).t)}</a> · ${esc(EXP.get(x.e).n)}</div>` : ''}${lines(2, 'mlines')}</div>`;
+  const memoRow = x => `<div class="mrow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span></div><div class="mf">${esc(x.f)}</div>${x.a ? `<div class="ma"><b>답변</b>${esc(x.a)}</div>` : ''}${x.e && EXP.has(x.e) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${x.e}">${esc(EXP.get(x.e).t)}</a> · ${esc(EXP.get(x.e).n)}</div>` : ''}${lines(2, 'mlines')}</div>`;
   $('#memoBasics').innerHTML = MEMO.basics.map(memoRow).join('');
   $('#memoDoing').innerHTML = MEMO.doing.map(memoRow).join('');
   $('#memoNews').innerHTML = MEMO.news.map(memoRow).join('');
+  $('#memoDict').innerHTML = (MEMO.dict || []).map(memoRow).join('');
+  $('#memoVideo').innerHTML = (MEMO.video || []).map(memoRow).join('');
+  $('#cardList').innerHTML = MEMO.cards.map(([q, a]) => `<li><b>${esc(q)}</b><span>${esc(a)}</span></li>`).join('');
 
   (function cards() {
     const ALL = MEMO.cards.map(([q, a], i) => ({ id: 'c' + i, q, a }));
@@ -87,7 +90,9 @@
     const g = grade(q); const a = A[q.id] || {};
     const vs = (q.v && q.v.length) ? `<ul class="pvlist">${q.v.map(([k, t]) => `<li>${esc((S.get(k) || {}).yr || '')} ${esc((S.get(k) || {}).type || '')} · ${esc(t)}</li>`).join('')}</ul>` : '';
     const def = q.def ? `<div class="pdef"><b>정의</b>${esc(q.def)}</div>` : '';
-    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${vs}${def}${answerBody(a)}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
+    const ref = [q.fix && `대책 · ${q.fix}`, q.link && `한전 연결 메모 · ${q.link}`, q.tip && `팁 · ${q.tip}`].filter(Boolean);
+    const refs = ref.length ? `<div class="pref">${ref.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : '';
+    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${vs}${def}${answerBody(a)}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
   }
   const state = { group: '전체', q: '' };
   const GROUPS = ['전체', '경험·공통', '직무', '시사·경북', '자소서'];
