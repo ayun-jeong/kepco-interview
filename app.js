@@ -42,7 +42,7 @@
   const dday = s => Math.round((P(s) - TODAY) / 864e5);
   const fmt = s => { const d = P(s); return `${d.getMonth() + 1}/${d.getDate()}`; };
   $('#timeline').innerHTML = TL.map(x => { const end = x.e ? P(x.e) : P(x.d); const dd = dday(x.d); const cls = end < TODAY ? 'past' : (P(x.d) <= TODAY ? 'now' : ''); const lab = end < TODAY ? '지남' : P(x.d) <= TODAY ? '진행 중' : `D-${dd}`; return `<li class="${cls}"><div class="dt">${fmt(x.d)}${x.e ? ' ~ ' + fmt(x.e) : ''}</div><div class="tt">${x.t}</div>${x.s ? `<div class="ss">${x.s}</div>` : ''}<span class="dd">${lab}</span></li>`; }).join('');
-  (function alert() { const el = $('#alert'); const sub = dday('2026-10-29'), iv = dday('2026-11-09'), ivEnd = dday('2026-11-27'); if (sub >= 0) el.innerHTML = `<b>자소서·증빙 제출 D-${sub}</b> · 자소서 3문항이 경험면접 질문지다. 제출한 원문과 문장별 꼬리질문 30개는 2번 “제출한 자소서”에. 면접에서는 자소서와 같은 단어·같은 숫자로.`; else if (iv > 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 시작 D-${iv}</b> · 질문·답변 모음의 S·A 질문부터 소리 내어 연습. 숫자 카드는 매일 한 바퀴.`; } else if (ivEnd >= 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 기간</b> · 수험표·신분증. 이름·학교는 말하지 않는다.`; } else { el.className = 'alert calm'; el.textContent = '면접 기간이 끝났다. 최종 발표 12월 3일.'; } })();
+  (function alert() { const el = $('#alert'); const sub = dday('2026-10-29'), iv = dday('2026-11-09'), ivEnd = dday('2026-11-27'); if (sub >= 0) el.innerHTML = `<b>자소서·증빙 제출 D-${sub}</b> · 자소서 3문항이 경험면접 질문지다. 제출한 원문과 문장별 꼬리질문은 2번 “제출한 자소서”에. 면접에서는 자소서와 같은 단어·같은 숫자로.`; else if (iv > 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 시작 D-${iv}</b> · 질문·답변 모음의 S·A 질문부터 소리 내어 연습. 숫자 카드는 매일 한 바퀴.`; } else if (ivEnd >= 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 기간</b> · 수험표·신분증. 이름·학교는 말하지 않는다.`; } else { el.className = 'alert calm'; el.textContent = '면접 기간이 끝났다. 최종 발표 12월 3일.'; } })();
 
   /* ───── 내 경험 ───── */
   $('#intro30').textContent = ME.intro30; $('#intro60').textContent = ME.intro60; $('#spec').textContent = ME.spec.join(' · ');
@@ -54,11 +54,13 @@
   (function essay() {
     const E = window.ESSAY, el = $('#essayBlock'); if (!E || !el) return;
     const QB = new Map(Q.map(q => [q.id, q]));
-    const qa = (no, i) => { const q = QB.get(`ef${no}_${i}`); return q ? `<a class="eqn" href="#q-${q.id}">Q${q.no}</a>` : ''; };
+    const qid = (no, i) => typeof i === 'string' ? i : `ef${no}_${i}`;
+    const qa = (no, i) => { const q = QB.get(qid(no, i)); return q ? `<a class="eqn" href="#q-${q.id}">Q${q.no}</a>` : ''; };
     const para = (no, t, hooks) => { let h = esc(t); hooks.forEach(([p, i]) => { const ep = esc(p), at = h.indexOf(ep); if (at >= 0) h = h.slice(0, at) + `<mark class="eh">${ep}${qa(no, i)}</mark>` + h.slice(at + ep.length); }); return `<p>${h}</p>`; };
-    const qlist = x => x.qs.map((t, i) => { const q = QB.get(`ef${x.no}_${i}`); return q ? `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(t)}</a>` : ''; }).join('');
+    const qlist = x => x.qs.map((t, i) => { const q = QB.get(`ef${x.no}_${i}`); return q ? `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(t)}</a>` : ''; }).join('')
+      + x.hooks.filter(h => typeof h[1] === 'string').map(h => QB.get(h[1])).filter(Boolean).map(q => `<a class="eqg" href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q)} <small>같은 기출</small></a>`).join('');
     el.innerHTML = `<p class="subp">${esc(E.rule)}</p><div class="essay">`
-      + E.items.map(x => `<article class="ccard eitem" id="essay-${x.no}"><span class="lbl">자소서 ${x.no}번 · ${esc(x.title)} · ${esc(E.date)}</span><p class="eprompt">${esc(x.prompt)}</p><div class="etext">${x.text.map(t => para(x.no, t, x.hooks)).join('')}</div><p class="eaxis"><b>줄기</b>${esc(x.axis)}</p><p class="eaxis"><b>쓴 경험</b>${expLink(x.exps)}</p><div class="eqs"><b>꼬리질문 ${x.qs.length}</b><div class="jdq">${qlist(x)}</div></div>${lines(3, 'mlines')}</article>`).join('')
+      + E.items.map(x => `<article class="ccard eitem" id="essay-${x.no}"><span class="lbl">자소서 ${x.no}번 · ${esc(x.title)} · ${esc(E.date)}</span><p class="eprompt">${esc(x.prompt)}</p><div class="etext">${x.text.map(t => para(x.no, t, x.hooks)).join('')}</div><p class="eaxis"><b>줄기</b>${esc(x.axis)}</p><p class="eaxis"><b>쓴 경험</b>${expLink(x.exps)}</p><div class="eqs"><b>꼬리질문 ${x.qs.length + x.hooks.filter(h => typeof h[1] === 'string').length}</b><div class="jdq">${qlist(x)}</div></div>${lines(3, 'mlines')}</article>`).join('')
       + `</div><div class="ccard enums"><span class="lbl">숫자 맞추기 · 자소서 표현과 원자료</span><table><thead><tr><th>자소서</th><th>원자료</th><th>면접에서</th></tr></thead><tbody>${E.nums.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
       + `<div class="ccard echecks"><span class="lbl">자소서대로 말할 때 지킬 것</span><ul class="plain">${E.checks.map(([t, u]) => `<li><b>${esc(t)}</b> ${esc(u)}</li>`).join('')}</ul></div>`;
   })();
@@ -98,10 +100,10 @@
     if (!a.s) return '<p class="empty">답변 없음</p>';
     return `<div class="ans4"><div class="say"><b>말할 답변</b><p>${esc(meText(a.s))}</p></div><div class="two"><div class="kk"><b>한전 연결</b><p>${esc(meText(a.k))}</p></div><div class="ee"><b>내 경험</b><p>${expLink(a.e)}</p></div></div>${a.f ? `<div class="ff"><b>꼬리질문 대비</b><p>${expLink(meText(a.f))}</p></div>` : ''}</div>`;
   }
-  const metaOf = q => (q.essay ? '자소서 기반' : q.pred ? '기출 없음 · 예상' : `${q.iv} · 후기 ${q.n}곳`) + (q.rec && q.rec.length ? ` · 2025 하반기 이후 ${q.rec.length}곳` : '');
+  const metaOf = q => (q.essay ? '자소서 기반' : q.pred ? '기출 없음 · 예상' : `${q.iv} · 후기 ${q.n}곳`) + (q.rec && q.rec.length ? ` · 2025 하반기 이후 ${q.rec.length}곳` : '') + (q.star ? ` · ${q.star}` : '');
   function card(q, prefix) {
     const g = grade(q); const a = A[q.id] || {};
-    const raw = (q.v && q.v.length) ? `<details class="raw"><summary>실제 질문 문장 ${q.v.length}개 · 정의 · 참고</summary><ul class="vlist">${q.v.map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('')}</ul>${q.def ? `<div class="defbox"><b>정의</b>${esc(q.def)}</div>` : ''}${q.tip ? `<div class="tipbox">${esc(q.tip)}</div>` : ''}</details>` : (q.tip ? `<details class="raw"><summary>참고</summary><div class="tipbox">${esc(q.tip)}</div></details>` : '');
+    const raw = (q.v && q.v.length) ? `<details class="raw"><summary>실제 질문 문장 ${q.v.length}개 · 정의 · 참고</summary><ul class="vlist">${q.v.map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('')}</ul>${q.def ? `<div class="defbox"><b>정의</b>${esc(q.def)}</div>` : ''}${q.tip ? `<div class="tipbox">${esc(q.tip)}</div>` : ''}</details>` : (q.tip || q.basis ? `<details class="raw"><summary>참고</summary>${q.basis ? `<div class="defbox"><b>예상 근거</b>${esc(q.basis)}</div>` : ''}${q.tip ? `<div class="tipbox">${esc(q.tip)}</div>` : ''}</details>` : '');
     return `<details class="qa" id="${prefix || 'q'}-${q.id}"><summary><i class="t ${gcls(g)}">${g}</i><span class="qt"><em class="qno">Q${q.no}</em>${esc(q.q)}</span><span class="qm">${metaOf(q)} · ${esc(q.cat)}</span></summary><div class="qa-body">${answerBody(a)}${raw}</div></details>`;
   }
   /* 인쇄용: 접히지 않는 블록 */
@@ -159,13 +161,12 @@
     elI.innerHTML = `<p class="subp">${esc(X.frame)}</p>`
       + `<h4 class="ideah">안에서 효율 ${X.ideas.internal.length} · 지사 사무직의 시간을 줄이는 것</h4><div class="ideas">${X.ideas.internal.map(idea('안에서 효율')).join('')}</div>`
       + `<h4 class="ideah">국민 편의 ${X.ideas.public.length} · 고객이 먼저 느끼는 것</h4><div class="ideas">${X.ideas.public.map(idea('국민 편의')).join('')}</div>`
-      + `<div class="ccard aicav"><span class="lbl">AI를 말할 때 같이 준비할 것 · 꼬리질문 6</span><ul class="plain">${X.caveats.map(([t, u]) => `<li><b>${esc(t)}</b> ${expLink(u)}</li>`).join('')}</ul></div>`
-      + `<div class="ccard aisrc"><span class="lbl">출처 ${X.src.length} · 2026.10.29 조사 · “어디서 봤나” 꼬리질문엔 매체 이름으로</span><p class="links">${X.src.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${esc(t)}</a>`).join(' · ')}</p></div>`;
+      + `<div class="ccard aicav"><span class="lbl">AI를 말할 때 같이 준비할 것 · 꼬리질문 6</span><ul class="plain">${X.caveats.map(([t, u]) => `<li><b>${esc(t)}</b> ${expLink(u)}</li>`).join('')}</ul></div>`;
   })();
 
   /* ───── 경북 ───── */
   $('#gb30').textContent = ME.gbMotive30; $('#gb60').textContent = ME.gbMotive60;
-  const GBQ = ['p_why', 'p_stay', 'relocate', 'p_local', 'p_elder', 'merge'].map(id => Q.find(q => q.id === id)).filter(Boolean);
+  const GBQ = ['p_why', 'relocate', 'p_local', 'p_elder', 'merge'].map(id => Q.find(q => q.id === id)).filter(Boolean);
   $('#gbQa').innerHTML = GBQ.filter(q => q.id !== 'p_why').map(q => card(q, 'gbq')).join('');
   $('#gbNote').textContent = `경북 관련 질문은 5번 질문 모음에 답변과 함께 있다: ${GBQ.map(q => `Q${q.no} ${q.q}`).join(' / ')}`;
 
@@ -235,9 +236,10 @@
     $('#prAll').addEventListener('click', () => { st = Object.assign({}, st, { secs: SECS.map(s => s[0]), groups: GL.slice() }); apply(); });
     $('#prQaOnly').addEventListener('click', () => { st = Object.assign({}, st, { secs: [], groups: GL.slice() }); apply(); });
     $('#prGo').addEventListener('click', () => window.print());
-    $$('[data-print-go]').forEach(b => b.addEventListener('click', () => { location.hash = '#print'; }));
     apply();
   })();
 
+  const NUM = { exps: ME.exps.length, cards: MEMO.cards.length, aixNow: AX.now.length, aixIdeas: `${AX.ideas.internal.length + AX.ideas.public.length} · 안에서 효율 ${AX.ideas.internal.length} · 국민 편의 ${AX.ideas.public.length}` };
+  $$('[data-n]').forEach(el => { const k = el.dataset.n; el.textContent = k in NUM ? NUM[k] : (MEMO[k] || []).length; });
   $('#upd').textContent = `자료 기준일 ${UPDATED}.`;
 })();

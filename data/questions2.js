@@ -9,7 +9,7 @@
   const addV = (id, texts, opt) => {
     const q = byId[id]; if (!q) { console.warn('no cluster', id); return; }
     q.v = q.v || []; texts.forEach(t => q.v.push(['mm', t]));
-    if (q.pred) { delete q.pred; q.tip = (q.tip || '') + (q.basis ? ' (예상 근거였던 것: ' + q.basis + ')' : ''); delete q.basis; }
+    if (q.pred) { delete q.pred; delete q.basis; }
     if (opt && opt.tip) q.tip = (q.tip ? q.tip + ' ' : '') + opt.tip;
   };
 
