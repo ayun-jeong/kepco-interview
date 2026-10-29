@@ -16,6 +16,9 @@
 | `data/questions.js` | `CATS`(질문 유형), `QUESTIONS`(질문 묶음), `EXTRA`(보충 개념) |
 | `data/site.js` | 한전 홈페이지 페이지별 정리(`SITE`). 크롤링 결과를 합쳐 생성 |
 | `data/site-points.js` | 메뉴별 면접 포인트(`SITE_POINTS`) |
+| `data/me.js` | 경험 카드 13개(`ME.exps`, 자소서에 쓴 경험은 `essay: '자소서 n번'`), 30초·1분 자기소개, 경북 지원동기 |
+| `data/essay.js` | 제출한 자소서(2026.10.29) 원문 `ESSAY.items[].text`, 화면에 표시할 구절 `hooks`, 꼬리질문 `qs`(→ `ESSAY_FOLLOWUPS`, id `ef{문항}_{순서}`), 숫자 대조표 `nums` |
+| `data/answers_1~7.js` | 질문별 답변 `{s 말할 답변, k 한전 연결, e 내 경험 키, f 꼬리질문 대비}`. 자소서 꼬리질문 30개는 `answers_7.js` |
 
 ## 데이터 규칙
 

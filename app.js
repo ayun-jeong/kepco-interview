@@ -23,7 +23,8 @@
   const RECENT = new Set(window.RECENT_SRC || []);
   Q.forEach(q => { q.rec = q.srcs.filter(k => RECENT.has(k)); });
   const srcLabel = k => { const s = S.get(k) || {}; return `${s.yr || ''} ${s.type || ''}${s.track === '기술' ? '(기술직)' : s.track === '불명' ? '(직군 불명)' : ''}`.trim(); };
-  const SORT = (a, b) => ORDER[a.group] - ORDER[b.group] || b.n - a.n || a.q.localeCompare(b.q, 'ko');
+  const eix = q => q.essay ? +q.id.slice(2, q.id.indexOf('_')) * 100 + +q.id.split('_')[1] : 0;
+  const SORT = (a, b) => ORDER[a.group] - ORDER[b.group] || eix(a) - eix(b) || b.n - a.n || a.q.localeCompare(b.q, 'ko');
   [...Q].sort(SORT).forEach((q, i) => { q.no = i + 1; });
   const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
 
@@ -32,7 +33,7 @@
   $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장, 한전 AI 현황 ${AX.now.length}줄과 내 AI 아이디어 ${AX.ideas.internal.length + AX.ideas.public.length}개. 8번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
   const TL = [
     { d: '2026-10-27', t: '필기 합격 발표', s: '발표일 포함 3일 안에 자소서·증빙 제출' },
-    { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자. 제출 전 따로 저장' },
+    { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자 · 원문과 꼬리질문은 2번 섹션' },
     { d: '2026-11-09', e: '2026-11-27', t: '면접 (직무 + 경험)', s: '하루 통합' },
     { d: '2026-12-03', t: '최종 합격 발표', s: '' },
     { d: '2027-01-18', t: '사무 입사', s: '수습 3개월' },
@@ -41,13 +42,26 @@
   const dday = s => Math.round((P(s) - TODAY) / 864e5);
   const fmt = s => { const d = P(s); return `${d.getMonth() + 1}/${d.getDate()}`; };
   $('#timeline').innerHTML = TL.map(x => { const end = x.e ? P(x.e) : P(x.d); const dd = dday(x.d); const cls = end < TODAY ? 'past' : (P(x.d) <= TODAY ? 'now' : ''); const lab = end < TODAY ? '지남' : P(x.d) <= TODAY ? '진행 중' : `D-${dd}`; return `<li class="${cls}"><div class="dt">${fmt(x.d)}${x.e ? ' ~ ' + fmt(x.e) : ''}</div><div class="tt">${x.t}</div>${x.s ? `<div class="ss">${x.s}</div>` : ''}<span class="dd">${lab}</span></li>`; }).join('');
-  (function alert() { const el = $('#alert'); const sub = dday('2026-10-29'), iv = dday('2026-11-09'), ivEnd = dday('2026-11-27'); if (sub >= 0) el.innerHTML = `<b>자소서·증빙 제출 D-${sub}</b> · 자소서 3문항이 경험면접 질문지다. 제출 전에 복사해 두고, 쓴 경험은 아래 “내 경험” 카드와 같아야 한다.`; else if (iv > 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 시작 D-${iv}</b> · 질문·답변 모음의 S·A 질문부터 소리 내어 연습. 숫자 카드는 매일 한 바퀴.`; } else if (ivEnd >= 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 기간</b> · 수험표·신분증. 이름·학교는 말하지 않는다.`; } else { el.className = 'alert calm'; el.textContent = '면접 기간이 끝났다. 최종 발표 12월 3일.'; } })();
+  (function alert() { const el = $('#alert'); const sub = dday('2026-10-29'), iv = dday('2026-11-09'), ivEnd = dday('2026-11-27'); if (sub >= 0) el.innerHTML = `<b>자소서·증빙 제출 D-${sub}</b> · 자소서 3문항이 경험면접 질문지다. 제출한 원문과 문장별 꼬리질문 30개는 2번 “제출한 자소서”에. 면접에서는 자소서와 같은 단어·같은 숫자로.`; else if (iv > 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 시작 D-${iv}</b> · 질문·답변 모음의 S·A 질문부터 소리 내어 연습. 숫자 카드는 매일 한 바퀴.`; } else if (ivEnd >= 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 기간</b> · 수험표·신분증. 이름·학교는 말하지 않는다.`; } else { el.className = 'alert calm'; el.textContent = '면접 기간이 끝났다. 최종 발표 12월 3일.'; } })();
 
   /* ───── 내 경험 ───── */
   $('#intro30').textContent = ME.intro30; $('#intro60').textContent = ME.intro60; $('#spec').textContent = ME.spec.join(' · ');
-  $('#exps').innerHTML = ME.exps.map(e => `<article class="exp" id="exp-${e.k}"><div class="ehead"><h3>${esc(e.t)}</h3><span>${esc(e.r)} · ${esc(e.when)}</span></div><div class="enum">${esc(e.n)}</div><p>${esc(e.s)}</p><p class="elearn"><b>배운 점</b>${esc(e.l)}</p><div class="etags">${e.tags.map(t => `<i>${esc(t)}</i>`).join('')}</div></article>`).join('');
+  $('#exps').innerHTML = ME.exps.map(e => `<article class="exp" id="exp-${e.k}"><div class="ehead"><h3>${esc(e.t)}</h3><span>${esc(e.r)} · ${esc(e.when)}</span>${e.essay ? `<em class="ebadge">${esc(e.essay)}</em>` : ''}</div><div class="enum">${esc(e.n)}</div><p>${esc(e.s)}</p><p class="elearn"><b>배운 점</b>${esc(e.l)}</p><div class="etags">${e.tags.map(t => `<i>${esc(t)}</i>`).join('')}</div></article>`).join('');
   const expLink = txt => esc(txt).replace(/\b([a-z_]+)\b/g, (m, k) => EXP.has(k) ? `<a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a>` : m);
   const meText = txt => String(txt == null ? '' : txt).replace(/ME\.(intro30|intro60|gbMotive30|gbMotive60)/g, (m, k) => ME[k]);
+
+  /* ───── 제출한 자소서 ───── */
+  (function essay() {
+    const E = window.ESSAY, el = $('#essayBlock'); if (!E || !el) return;
+    const QB = new Map(Q.map(q => [q.id, q]));
+    const qa = (no, i) => { const q = QB.get(`ef${no}_${i}`); return q ? `<a class="eqn" href="#q-${q.id}">Q${q.no}</a>` : ''; };
+    const para = (no, t, hooks) => { let h = esc(t); hooks.forEach(([p, i]) => { const ep = esc(p), at = h.indexOf(ep); if (at >= 0) h = h.slice(0, at) + `<mark class="eh">${ep}${qa(no, i)}</mark>` + h.slice(at + ep.length); }); return `<p>${h}</p>`; };
+    const qlist = x => x.qs.map((t, i) => { const q = QB.get(`ef${x.no}_${i}`); return q ? `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(t)}</a>` : ''; }).join('');
+    el.innerHTML = `<p class="subp">${esc(E.rule)}</p><div class="essay">`
+      + E.items.map(x => `<article class="ccard eitem" id="essay-${x.no}"><span class="lbl">자소서 ${x.no}번 · ${esc(x.title)} · ${esc(E.date)}</span><p class="eprompt">${esc(x.prompt)}</p><div class="etext">${x.text.map(t => para(x.no, t, x.hooks)).join('')}</div><p class="eaxis"><b>줄기</b>${esc(x.axis)}</p><p class="eaxis"><b>쓴 경험</b>${expLink(x.exps)}</p><div class="eqs"><b>꼬리질문 ${x.qs.length}</b><div class="jdq">${qlist(x)}</div></div>${lines(3, 'mlines')}</article>`).join('')
+      + `</div><div class="ccard enums"><span class="lbl">숫자 맞추기 · 자소서 표현과 원자료</span><table><thead><tr><th>자소서</th><th>원자료</th><th>면접에서</th></tr></thead><tbody>${E.nums.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+      + `<div class="ccard echecks"><span class="lbl">자소서대로 말할 때 지킬 것</span><ul class="plain">${E.checks.map(([t, u]) => `<li><b>${esc(t)}</b> ${esc(u)}</li>`).join('')}</ul></div>`;
+  })();
 
   /* ───── 이슈 암기 ───── */
   const memoRow = x => `<div class="mrow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span></div><div class="mf">${esc(x.f)}</div>${x.a ? `<div class="ma"><b>답변</b>${esc(x.a)}</div>` : ''}${x.e && EXP.has(x.e) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${x.e}">${esc(EXP.get(x.e).t)}</a> · ${esc(EXP.get(x.e).n)}</div>` : ''}${lines(2, 'mlines')}</div>`;
@@ -183,7 +197,7 @@
     const GL = ['경험·공통', '직무', '시사·경북', '자소서'];
     const GH = { '경험·공통': '경험면접 · 공통 질문', '직무': '직무면접 · 전공·직무 질문', '시사·경북': '시사 · 경북 · 민원 상황 (예상)', '자소서': '자소서 꼬리질문' };
     $('#printQa').innerHTML = GL.map(g => { const list = Q.filter(q => q.group === g).sort(SORT); return `<div class="pgrp" data-g="${g}"><h3 class="pgh">${GH[g]} <small>${list.length}개 · Q${list[0].no}~Q${list[list.length - 1].no}</small></h3>${list.map(printItem).join('')}</div>`; }).join('');
-    const SECS = [['struct', '1. 면접 한눈에'], ['me', '2. 내 경험 · 자기소개'], ['memo', '3. 이슈 암기'], ['gb', '4. 경북 지역전문사원']];
+    const SECS = [['struct', '1. 면접 한눈에'], ['me', '2. 내 경험 · 자기소개 · 자소서'], ['memo', '3. 이슈 암기'], ['gb', '4. 경북 지역전문사원']];
     const DEF = { secs: ['struct', 'me', 'memo', 'gb'], groups: GL.slice(), mode: 'note', ln: 4, vs: false };
     let st = DEF;
     try { st = Object.assign({}, DEF, JSON.parse(localStorage.getItem('kepco.print') || '{}')); } catch (e) { }

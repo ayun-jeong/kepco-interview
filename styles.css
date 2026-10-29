@@ -661,3 +661,43 @@ ul.jdlist{padding-left:0;list-style:none}
   .aisrc{display:none}
   .pm-blank .arow .ma,.pm-blank .arow .aq{display:none!important}
 }
+
+/* 제출한 자소서 */
+.essay{display:grid;gap:12px}
+.eitem{scroll-margin-top:70px}
+.eitem .eprompt{font-size:12.5px;color:var(--tx3);margin:0 0 10px;line-height:1.55}
+.etext p{font-size:14.5px;color:var(--tx);line-height:1.85;margin:0 0 10px}
+mark.eh{background:var(--a-bg);color:inherit;border-radius:4px;padding:1px 3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.eqn{display:inline-block;margin-left:4px;font-size:11px;font-weight:800;color:var(--j);text-decoration:none;font-variant-numeric:tabular-nums}
+.eqn:hover{text-decoration:underline}
+.eitem .eaxis{font-size:13px;color:var(--tx2);margin-top:8px;line-height:1.6}
+.eitem .eaxis b,.eitem .eqs>b{display:inline-block;font-size:11px;color:var(--e);letter-spacing:.05em;margin-right:6px}
+.eitem .eqs{margin-top:10px}
+.eitem .eqs .jdq{margin-top:4px}
+.enums,.echecks{margin-top:12px}
+.enums table{width:100%;border-collapse:collapse;font-size:12.5px}
+.enums th{text-align:left;font-size:11px;color:var(--tx3);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line2)}
+.enums td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--tx2);line-height:1.55}
+.enums td:first-child{color:var(--tx);font-weight:700;width:22%}
+.echecks li{font-size:13px;color:var(--tx2);line-height:1.6}
+.echecks li b{color:var(--tx);margin-right:4px}
+.ebadge{display:inline-block;margin-top:6px;font-style:normal;font-size:11px;font-weight:800;color:var(--e);background:var(--e-bg);padding:1px 8px;border-radius:999px}
+@media (max-width:640px){
+  .etext p{font-size:14px}
+  .enums table,.enums tbody,.enums tr,.enums td{display:block;width:auto}
+  .enums thead{display:none}
+  .enums tr{padding:8px 0;border-bottom:1px solid var(--line)}
+  .enums td{border:0;padding:2px 0}
+  .enums td:first-child{width:auto}
+}
+@media print{
+  .etext p{font-size:9.5pt;line-height:1.6;margin:0 0 2mm}
+  mark.eh{background:none;border-bottom:1.2px solid #888;padding:0}
+  .eqn{font-size:7pt;color:#333}
+  .eitem .eprompt{font-size:8pt}
+  .eitem .eaxis{font-size:8.5pt}
+  .enums table{font-size:8pt}
+  .enums td,.enums th{padding:1.2mm 1.5mm}
+  .echecks li{font-size:8.5pt}
+  .ebadge{font-size:7pt;padding:0 4px}
+}
