@@ -3,7 +3,7 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const UPDATED = '2026-10-29';
+  const UPDATED = '2026-10-30';
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
   const S = new Map(SOURCES.map(s => [s.k, s]));
   const CAT = new Map(CATS.map(c => [c.k, c]));
