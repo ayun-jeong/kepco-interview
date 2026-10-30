@@ -336,7 +336,7 @@ footer p+p{margin-top:8px}
   .pgh{font-size:12.5pt;border-bottom:2px solid #000;padding-bottom:1.5mm;margin:0 0 1mm;break-after:avoid}
   .pgh small{font-size:8.5pt;color:#444}
   .pitem{border-bottom:1px solid #999;padding:3mm 0 3.5mm}
-  .phead,.pvlist,.pdef,.ans4 .say,.ans4 .two,.ans4 .ff{break-inside:avoid}
+  .phead,.pdef,.ans4 .say,.ans4 .two,.ans4 .ff{break-inside:avoid}
   .phead,.pwrite>b{break-after:avoid}
   .pm-blank .pitem{break-inside:avoid;padding:2.5mm 0 2.5mm}
   .pm-blank .lines i{height:6.8mm}
@@ -347,8 +347,6 @@ footer p+p{margin-top:8px}
   .phead .pm{grid-column:3;font-size:7.5pt;color:#555}
   .pno{font-weight:800;font-size:11pt;font-variant-numeric:tabular-nums}
   .t{border:1px solid #000;background:#fff!important;color:#000!important;height:auto;padding:0 1.5mm;font-size:8pt}
-  .pvlist{display:none;font-size:8pt;color:#333;margin:0 0 1.5mm;padding-left:4mm}
-  .pv-on .pvlist{display:block}
   .pdef{font-size:9pt;border:1px dashed #999;padding:1.5mm 2.5mm;margin:0 0 1.5mm;line-height:1.5}
   .pdef b{font-size:7.5pt;margin-right:2mm;color:#444}
   .ans4{gap:1.5mm}
@@ -381,7 +379,7 @@ footer p+p{margin-top:8px}
   .pm-blank .cardlist li span{visibility:hidden}
   .subp{font-size:8.5pt}
   .pref{display:none;margin-top:1.5mm;border-top:1px dashed #bbb;padding-top:1mm}
-  .pv-on .pref{display:block}
+  .pn-on .pref{display:block}
   .pref p{font-size:8pt;line-height:1.45;color:#222;margin:0 0 .6mm}
   .pm-blank .pref{display:none!important}
   .recentlist{display:block;columns:2;column-gap:6mm}

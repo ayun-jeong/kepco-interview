@@ -109,11 +109,10 @@
   /* 인쇄용: 접히지 않는 블록 */
   function printItem(q) {
     const g = grade(q); const a = A[q.id] || {};
-    const vs = (q.v && q.v.length) ? `<ul class="pvlist">${q.v.map(([k, t]) => `<li>${esc((S.get(k) || {}).yr || '')} ${esc((S.get(k) || {}).type || '')} · ${esc(t)}</li>`).join('')}</ul>` : '';
     const def = q.def ? `<div class="pdef"><b>정의</b>${esc(q.def)}</div>` : '';
     const ref = [q.fix && `대책 · ${q.fix}`, q.link && `한전 연결 메모 · ${q.link}`, q.tip && `팁 · ${q.tip}`].filter(Boolean);
     const refs = ref.length ? `<div class="pref">${ref.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : '';
-    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${vs}${def}${answerBody(a)}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
+    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${def}${answerBody(a)}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
   }
   const state = { group: '전체', q: '' };
   const GROUPS = ['전체', '2025 하반기 이후', '경험·공통', '직무', '시사·경북', '자소서'];
@@ -199,14 +198,14 @@
     const GH = { '경험·공통': '경험면접 · 공통 질문', '직무': '직무면접 · 전공·직무 질문', '시사·경북': '시사 · 경북 · 민원 상황 (예상)', '자소서': '자소서 꼬리질문' };
     $('#printQa').innerHTML = GL.map(g => { const list = Q.filter(q => q.group === g).sort(SORT); return `<div class="pgrp" data-g="${g}"><h3 class="pgh">${GH[g]} <small>${list.length}개 · Q${list[0].no}~Q${list[list.length - 1].no}</small></h3>${list.map(printItem).join('')}</div>`; }).join('');
     const SECS = [['struct', '1. 면접 한눈에'], ['me', '2. 내 경험 · 자기소개 · 자소서'], ['memo', '3. 이슈 암기'], ['gb', '4. 경북 지역전문사원']];
-    const DEF = { secs: ['struct', 'me', 'memo', 'gb'], groups: GL.slice(), mode: 'note', ln: 4, vs: false };
+    const DEF = { secs: ['struct', 'me', 'memo', 'gb'], groups: GL.slice(), mode: 'note', ln: 4, notes: true };
     let st = DEF;
     try { st = Object.assign({}, DEF, JSON.parse(localStorage.getItem('kepco.print') || '{}')); } catch (e) { }
     const qs = new URLSearchParams(location.search);
     if (qs.has('p')) { const p = qs.get('p').split(',').filter(Boolean); st = Object.assign({}, st, { secs: p.filter(x => SECS.some(s => s[0] === x)), groups: p.filter(x => GL.includes(x)) }); }
     if (qs.has('mode')) st.mode = qs.get('mode') === 'blank' ? 'blank' : 'note';
     if (qs.has('ln')) st.ln = +qs.get('ln') || 0;
-    if (qs.has('vs')) st.vs = qs.get('vs') === '1';
+    if (qs.has('nt')) st.notes = qs.get('nt') === '1';
     const cnt = g => Q.filter(q => q.group === g).length;
     $('#prSecs').innerHTML = SECS.map(([k, t]) => `<label><input type="checkbox" data-sec="${k}"> ${t}</label>`).join('') + GL.map(g => `<label><input type="checkbox" data-grp="${g}"> 5. 질문 · ${g} <small>${cnt(g)}개</small></label>`).join('');
     const apply = () => {
@@ -214,14 +213,14 @@
       $$('#printQa .pgrp').forEach(el => el.classList.toggle('noprint', !st.groups.includes(el.dataset.g)));
       $('#qa').classList.toggle('noprint', !st.groups.length);
       document.body.classList.toggle('pm-blank', st.mode === 'blank');
-      document.body.classList.toggle('pv-on', !!st.vs);
+      document.body.classList.toggle('pn-on', !!st.notes);
       document.body.dataset.ln = st.mode === 'blank' ? Math.max(st.ln, 8) : st.ln;
       $$('#prSecs [data-sec]').forEach(i => i.checked = st.secs.includes(i.dataset.sec));
       $$('#prSecs [data-grp]').forEach(i => i.checked = st.groups.includes(i.dataset.grp));
       $$('input[name=prMode]').forEach(i => i.checked = i.value === st.mode);
-      $('#prLn').value = String(st.ln); $('#prVs').checked = !!st.vs;
+      $('#prLn').value = String(st.ln); $('#prNotes').checked = !!st.notes;
       const nq = Q.filter(q => st.groups.includes(q.group)).length;
-      $('#prSum').textContent = `질문 ${nq}개${st.secs.length ? ` + 정리 ${st.secs.length}개 섹션` : ''} · ${st.mode === 'blank' ? '답을 가리고 쓰는 줄을 크게' : `답변 전부 + 메모 ${st.ln}줄`}`;
+      $('#prSum').textContent = `질문 ${nq}개${st.secs.length ? ` + 정리 ${st.secs.length}개 섹션` : ''} · ${st.mode === 'blank' ? '답을 가리고 쓰는 줄을 크게' : `답변 전부${st.notes ? ' + 참고 메모' : ''} + 메모 ${st.ln}줄`}`;
       try { localStorage.setItem('kepco.print', JSON.stringify(st)); } catch (e) { }
     };
     $('#print').addEventListener('change', e => {
@@ -230,7 +229,7 @@
       else if (i.dataset.grp) st.groups = GL.filter(g => g === i.dataset.grp ? i.checked : st.groups.includes(g));
       else if (i.name === 'prMode') st.mode = i.value;
       else if (i.id === 'prLn') st.ln = +i.value;
-      else if (i.id === 'prVs') st.vs = i.checked;
+      else if (i.id === 'prNotes') st.notes = i.checked;
       apply();
     });
     $('#prAll').addEventListener('click', () => { st = Object.assign({}, st, { secs: SECS.map(s => s[0]), groups: GL.slice() }); apply(); });
