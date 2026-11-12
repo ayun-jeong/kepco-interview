@@ -102,7 +102,7 @@
         <div class="topic-text"><dl><dt>어떤 이슈인가요?</dt><dd>${esc(t.f)}</dd><dt>왜 중요한가요?</dt><dd>${esc(t.why)}</dd></dl>
         <div class="issue-answer"><b>면접 답변 예시</b><p>${esc(t.a)}</p></div>
         ${representative ? `<p class="topic-source">${citation(representative)}</p>` : ''}
-        <details class="topic-extra screenonly"><summary>관련 질문과 자료</summary>${me(t.e)}
+        <details class="topic-extra print-appendix"><summary>관련 질문과 자료</summary>${me(t.e)}
           <div class="jdq">${ql(t.ids)}</div><p class="mn">${esc(t.n)}</p><ul>${list.map(x => `<li>${citation(x)}</li>`).join('')}</ul>
         </details></div></details>`;
     };
@@ -118,7 +118,7 @@
       <details class="chapter archive screenonly"><summary>날짜순 원문 목록 · ${items.length}건</summary>
         <div class="chips lfilter">${FILT.map(([k, t], i) => `<button class="chip${i ? '' : ' on'}" aria-pressed="${!i}" type="button" data-lf="${k}">${t}</button>`).join('')}</div>
         <div id="latestList">${list('all')}</div></details>
-      <div id="sourceDigest" class="printonly"><h4 class="sub">날짜순 원문 목록</h4><ol class="lprint">${items.map(x => `<li><b>${md(x)} ${SL[x.s]}</b> ${esc(x.t)}</li>`).join('')}</ol></div>`;
+      <div id="sourceDigest" class="printonly"><h4 class="sub">날짜순 원문 목록 · ${items.length}건</h4><ol class="lprint">${items.map(x => `<li><b>${md(x)} ${SL[x.s]}</b> <a href="${url(x)}">${esc(x.t)}</a><span class="digest-detail"> · ${tag(x)}<br>${esc(x.f)}</span></li>`).join('')}</ol></div>`;
     el.addEventListener('click', e => { const b = e.target.closest('[data-lf]'); if (!b) return; $$('[data-lf]', el).forEach(z => { z.classList.toggle('on', z === b); z.setAttribute('aria-pressed', z === b); }); $('#latestList').innerHTML = list(b.dataset.lf); });
   })();
 
@@ -155,9 +155,16 @@
       ${compact ? `<details class="answer-extra"><summary>꼬리질문과 답변 근거</summary>${extras}</details>` : extras}</div>`;
   }
   const metaOf = q => q.essay ? '제출한 자소서' : q.pred ? '예상 질문' : `후기 ${q.n}곳`;
+  function questionVariants(q, showSource = false) {
+    return (q.v || []).map(([k, t]) => {
+      const src = S.get(k);
+      const byline = showSource && src ? `<small>${esc(src.site)} · ${esc(src.title)}</small>` : '';
+      return `<li>${srcBadge(k)}<span>${esc(t)}${byline}</span></li>`;
+    }).join('');
+  }
   function card(q, prefix = 'q') {
     const notes = [[q.def, '개념'], [q.basis, '예상 근거'], [q.fix, '대응 방법'], [q.link, '한전과 연결'], [q.tip, '연습 메모']].filter(([v]) => v);
-    const variants = (q.v || []).map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('');
+    const variants = questionVariants(q);
     const raw = variants || notes.length ? `<details class="raw"><summary>${variants ? '실제 질문 문장과 출처' : '질문 배경과 참고 자료'}</summary>
       <ul class="vlist">${variants}</ul>${notes.map(([v, label]) => `<div class="defbox"><b>${label}</b>${esc(v)}</div>`).join('')}</details>` : '';
     return `<details class="qa" id="${prefix}-${q.id}"><summary><span class="qno">Q${String(q.no).padStart(2, '0')}</span>
@@ -165,12 +172,14 @@
       <div class="qa-body">${answerBody(A[q.id] || {}, true)}${raw}</div></details>`;
   }
   /* 인쇄용: 접히지 않는 블록 */
-  function printItem(q) {
+  function printItem(q, withVariants) {
     const g = grade(q); const a = A[q.id] || {};
     const def = q.def ? `<div class="pdef"><b>정의</b>${esc(q.def)}</div>` : '';
-    const ref = [q.fix && `대책 · ${q.fix}`, q.link && `한전 연결 메모 · ${q.link}`, q.tip && `팁 · ${q.tip}`].filter(Boolean);
+    const ref = [q.basis && `예상 근거 · ${q.basis}`, q.fix && `대책 · ${q.fix}`, q.link && `한전 연결 메모 · ${q.link}`, q.tip && `팁 · ${q.tip}`].filter(Boolean);
     const refs = ref.length ? `<div class="pref">${ref.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : '';
-    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${def}${answerBody(a)}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
+    const variants = withVariants ? questionVariants(q, true) : '';
+    const history = variants ? `<div class="paper-history"><b>실제 질문 문장과 출처 · ${q.v.length}건</b><ul class="vlist">${variants}</ul></div>` : '';
+    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${def}${answerBody(a)}${refs}${history}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
   }
   const state = { group: '전체', q: '', page: 0 };
   const pageSize = 12;
@@ -286,7 +295,7 @@
         `<tr><th>${esc(t.t)}${t.d ? `<small>${esc(t.d)}</small>` : ''}</th><td>${esc(officeNames(t))}</td></tr>`).join('')}</tbody>`).join('')}</table></div>`;
     const pts = `<div class="ccard gbpts"><span class="lbl">번호표로 본 포인트 ${G.points.length}</span><ul class="plain">${G.points.map(([t, u]) => `<li><b>${esc(t)}</b> ${esc(u)}</li>`).join('')}</ul><div class="jdq">${ql(G.ids)}</div></div>`;
     const total = O.reduce((n, o) => n + o.rows.length, 0);
-    const raw = `<details class="lfold gbfold screenonly"><summary>사업소별 업무별 전화번호 원문 ${total}줄 펼치기</summary>${O.map(o => `<h5 class="lmonth">${esc(o.name)} <small>${o.rows.length}줄 · ${esc(o.tel)}</small></h5><div class="tablewrap gbtw"><table class="gbraw"><tbody>${o.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="gbtel">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>`).join('')}</details>`;
+    const raw = `<details class="lfold gbfold print-appendix"><summary>사업소별 업무별 전화번호 원문 ${total}줄</summary>${O.map(o => `<h5 class="lmonth">${esc(o.name)} <small>${o.rows.length}줄 · ${esc(o.tel)}</small></h5><div class="tablewrap gbtw"><table class="gbraw"><thead><tr><th>부서</th><th>담당 업무</th><th>전화번호</th></tr></thead><tbody>${o.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="gbtel">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>`).join('')}</details>`;
     el.innerHTML = `<p class="subp">${esc(G.intro)}</p>`
       + `<h4 class="ideah">사업소 ${O.length}곳 한눈에 · 이름을 누르면 홈페이지</h4>${sum}`
       + `<div class="screenonly"><h4 class="ideah">사업소별 업무 · ●는 전화번호표에 표시된 업무</h4>${mx}</div>${paperMap}`
@@ -319,10 +328,15 @@
 
   /* 인쇄 화면과 브라우저 인쇄 단축키는 같은 자료 선택 함수를 쓴다. */
   (function printer() {
-    const book = [['struct', '면접 안내'], ['me', '내 경험·자소서'], ['topics', '주제별 이슈 해설'], ['memo', '이슈 참고 자료·숫자 카드'], ['gb', '경북 근무']];
+    const book = [
+      ['struct', '면접 안내·일정·후기'], ['jobdesc', '사무직 직무 설명'], ['me', '내 경험·자소서'],
+      ['topics', '주제별 이슈 해설'], ['memo', '한전 사업·용어·AI 사례·숫자 카드'], ['gb', '경북 근무'],
+      ['practice', '말하기 연습 안내'], ['links', '참고 사이트'], ['src', '자료 출처']
+    ];
     const groupNames = Object.keys(ORDER);
     const sectionIds = book.map(([id]) => id);
-    const defaults = { secs: [], groups: [], ids: Q.filter(frequent).map(q => q.id), mode: 'note', ln: 0, notes: false };
+    const defaults = { secs: [], groups: [], ids: Q.filter(frequent).map(q => q.id), mode: 'note', ln: 0, notes: false, appendix: false };
+    const fullPacket = { secs: sectionIds, groups: groupNames, ids: null, mode: 'note', notes: true, appendix: true };
     const choices = (values, valid) => Array.isArray(values) ? valid.filter(v => values.includes(v)) : [];
     let st = { ...defaults };
     try {
@@ -331,13 +345,19 @@
         st = { ...defaults, ids: null, ...saved };
         // 이전 설정에서 'memo'는 주제 해설과 참고 자료를 함께 뜻했다.
         if (!saved.version && st.secs.includes('memo')) st.secs.push('topics');
+        if ((saved.version || 0) < 3 && st.secs.includes('struct')) st.secs.push('jobdesc');
       }
     } catch {}
     const qs = new URLSearchParams(location.search);
     if (qs.has('p')) {
       const parts = qs.get('p').split(',');
-      st.secs = parts.includes('memo') ? [...parts, 'topics'] : parts;
-      st.groups = parts; st.ids = null;
+      if (parts.includes('all')) Object.assign(st, fullPacket);
+      else {
+        st.secs = [...parts];
+        if (parts.includes('memo')) st.secs.push('topics');
+        if (parts.includes('struct')) st.secs.push('jobdesc');
+        st.groups = parts; st.ids = null;
+      }
     }
     if (qs.has('mode')) st.mode = qs.get('mode');
     if (qs.has('ln')) st.ln = Number(qs.get('ln'));
@@ -347,7 +367,8 @@
     st.ids = Array.isArray(st.ids) ? choices(st.ids, Q.map(q => q.id)) : null;
     st.mode = st.mode === 'blank' ? 'blank' : 'note';
     if (![0, 2, 4, 6, 10].includes(st.ln)) st.ln = 0;
-    const selection = current => Q.filter(q => current.groups.includes(q.group) || (current.ids || []).includes(q.id));
+    const selection = current => Q.filter(q => current.groups.includes(q.group) || (current.ids || []).includes(q.id) ||
+      (current.secs.includes('practice') && q.id === $('#pq').dataset.id));
     const check = (key, value, label) => `<label><input type="checkbox" data-${key}="${value}"><span>${label}</span></label>`;
     $('#prSecs').innerHTML = book.map(([k, label]) => check('sec', k, label)).join('') +
       '<b class="pr-sub">질문 모음</b><div id="prSubset"></div>' +
@@ -363,10 +384,11 @@
       $$('input[name=prMode]').forEach(i => { i.checked = i.value === st.mode; });
       $('#prLn').closest('label').hidden = st.mode === 'blank';
       $('#prLn').value = String(st.ln);
+      $('#prAppendix').checked = st.appendix;
       $('#prNotes').checked = st.notes; $('#prNotes').disabled = st.mode === 'blank';
       $('#prSum').textContent = [st.secs.length && `자료 ${st.secs.length}종`, selected.length && `질문 ${selected.length}개`].filter(Boolean).join(' · ') || '인쇄할 자료를 선택하세요.';
       $('#prGo').disabled = !selected.length && !st.secs.length;
-      try { localStorage.setItem('kepco.print', JSON.stringify({ ...st, version: 2 })); } catch {}
+      try { localStorage.setItem('kepco.print', JSON.stringify({ ...st, version: 3 })); } catch {}
     }
     const choose = (secs, groups, ids = null) => { Object.assign(st, { secs, groups, ids }); apply(); };
     $('#print').addEventListener('change', e => {
@@ -379,14 +401,16 @@
       } else if (i.name === 'prMode') st.mode = i.value;
       else if (i.id === 'prLn') st.ln = Number(i.value);
       else if (i.id === 'prNotes') st.notes = i.checked;
+      else if (i.id === 'prAppendix') st.appendix = i.checked;
       apply();
     });
     $('#prSubset').addEventListener('click', e => { if (e.target.id === 'removeSubset') { st.ids = null; apply(); } });
-    $('#prAll').addEventListener('click', () => choose(sectionIds, groupNames));
+    $('#prAll').addEventListener('click', () => { Object.assign(st, fullPacket); apply(); });
     $('#prQaOnly').addEventListener('click', () => choose([], groupNames));
-    $('#prIssues').addEventListener('click', () => choose(['topics'], []));
+    $('#prIssues').addEventListener('click', () => { st.appendix = false; choose(['topics'], []); });
     $('#prFrequent').addEventListener('click', () => choose([], [], Q.filter(frequent).map(q => q.id)));
     $('#printResults').addEventListener('click', () => { choose([], [], matches().map(q => q.id)); location.hash = 'print'; });
+    window.addEventListener('hashchange', () => { if (location.hash === '#print') apply(); });
     $('#prGo').addEventListener('click', () => window.print());
     let openedForPrint = [];
     const pages = $$('#reading > section');
@@ -394,21 +418,32 @@
       const active = pages.find(s => s.classList.contains('active-view'))?.id || 'qa';
       let current = st;
       if (active !== 'print') {
-        const ids = active === 'qa' ? matches().map(q => q.id) : active === 'practice' && $('#pq').dataset.id ? [$('#pq').dataset.id] : [];
-        const secs = active === 'memo' ? ['topics', 'memo'] : [active];
+        const ids = active === 'qa' ? matches().map(q => q.id) : [];
+        let secs = [active];
+        if (active === 'memo') secs = ['topics', 'memo'];
+        if (active === 'struct') secs = ['struct', 'jobdesc'];
+        if (active === 'struct' && ['#jobdesc', '#jdBlock'].includes(location.hash)) secs = ['jobdesc'];
         current = { ...st, secs, groups: [], ids };
       }
       const selected = selection(current).sort(SORT);
       const includes = id => current.secs.includes(id);
-      const packet = [];
-      if (includes('topics') || includes('memo')) packet.push('memo');
-      if (selected.length || active === 'qa' || (active === 'practice' && !selected.length)) packet.push('qa');
+      const visiblePages = new Set(current.secs);
+      if (includes('topics')) visiblePages.add('memo');
+      if (includes('jobdesc')) visiblePages.add('struct');
+      if (selected.length || active === 'qa' || includes('practice')) visiblePages.add('qa');
+      // 말하기 연습은 질문지 첫머리에 안내하고, 뽑은 문항은 질문 목록에서 한 번만 싣는다.
+      visiblePages.delete('practice');
       pages.forEach(s => {
-        const visible = packet.includes(s.id) || (sectionIds.includes(s.id) && includes(s.id)) || (['src','links'].includes(s.id) && active === s.id);
-        s.classList.toggle('paper-page', visible);
+        s.classList.toggle('paper-page', visiblePages.has(s.id));
         s.classList.remove('pfirst');
       });
       pages.find(s => s.classList.contains('paper-page'))?.classList.add('pfirst');
+      $$('#struct > .wrap > :not(.shead):not(#jobdesc)').forEach(el => el.classList.toggle('omit-paper', !includes('struct')));
+      $('#jobdesc').classList.toggle('omit-paper', !includes('jobdesc'));
+      const picked = selected.find(q => q.id === $('#pq').dataset.id);
+      $('#paperPractice').classList.toggle('omit-paper', !includes('practice'));
+      $('#paperPractice p').textContent = $('#practice .shead p').textContent +
+        (picked ? ` 현재 연습 문항은 Q${picked.no}, 제한 시간은 ${$('#sec').value}초입니다.` : ' 30초, 60초, 90초 중 하나를 정해 연습하세요.');
       $('#topicPages').classList.toggle('omit-paper', !includes('topics') && !includes('memo'));
       $$('#latest, .topic-period, .topic-list').forEach(el => el.classList.toggle('omit-paper', !includes('topics')));
       $('#memoLibrary').classList.toggle('omit-paper', !includes('memo'));
@@ -416,12 +451,15 @@
       $('#sourceDigest').classList.toggle('omit-paper', !includes('memo'));
       $('#printQa').innerHTML = groupNames.map(g => {
         const list = selected.filter(q => q.group === g);
-        return list.length ? `<div class="pgrp"><h3 class="pgh">${g} <small>${list.length}문항</small></h3>${list.map(printItem).join('')}</div>` : '';
-      }).join('') || `<p>${active === 'practice' ? '연습할 질문을 먼저 뽑아 주세요.' : '선택한 질문이 없습니다.'}</p>`;
+        return list.length ? `<div class="pgrp"><h3 class="pgh">${g} <small>${list.length}문항</small></h3>${list.map(q => printItem(q, current.appendix && current.mode === 'note')).join('')}</div>` : '';
+      }).join('') || (includes('practice') ? '' : '<p>선택한 질문이 없습니다.</p>');
       document.body.classList.toggle('pm-blank', current.mode === 'blank');
       document.body.classList.toggle('pn-on', current.notes);
+      document.body.classList.toggle('with-appendix', current.appendix);
       document.body.dataset.ln = current.mode === 'blank' ? 8 : current.ln;
-      for (const d of $$('.paper-page details.chapter:not(.screenonly), .paper-page details.topic')) {
+      const folds = $$('.paper-page details.chapter:not(.screenonly), .paper-page details.topic');
+      if (current.appendix) folds.push(...$$('.paper-page details.print-appendix'));
+      for (const d of folds) {
         if (!d.open) { d.open = true; openedForPrint.push(d); }
       }
     }

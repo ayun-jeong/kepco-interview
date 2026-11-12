@@ -234,6 +234,7 @@
   <div class="result-line screenonly"><span id="qaCount" role="status"></span><button id="printResults" type="button">이 목록 인쇄</button></div>
   <div class="qa-list" id="qaList"></div>
   <div class="pagination screenonly" id="qaPages" aria-label="질문 목록 페이지"></div>
+  <div class="printonly" id="paperPractice"><h3 class="sub">말하기 연습</h3><p></p></div>
   <div class="printonly" id="printQa"></div>
 </div></section>
 
@@ -284,7 +285,7 @@
 </div></section>
 
 <section id="print"><div class="wrap">
-  <div class="shead"><h2>인쇄 설정</h2><p>자료와 형식을 고른 뒤 인쇄하거나 PDF로 저장하세요. 다른 메뉴에서 바로 인쇄하면 보고 있는 자료가 A4로 출력됩니다.</p></div>
+  <div class="shead"><h2>인쇄 설정</h2><p>‘전체 자료’를 누르면 모든 학습 자료와 출처, 상세 원문을 답변 노트로 선택합니다. 필요한 자료만 골라 A4로 인쇄하거나 PDF로 저장할 수도 있습니다.</p></div>
   <div class="print-presets"><b>빠른 선택</b><div><button class="btn ghost sm" id="prFrequent" type="button">빈출 질문</button><button class="btn ghost sm" id="prIssues" type="button">이슈 해설만</button><button class="btn ghost sm" id="prQaOnly" type="button">질문 전체</button><button class="btn ghost sm" id="prAll" type="button">전체 자료</button></div></div>
   <div class="prcard">
     <div class="prcol">
@@ -297,7 +298,8 @@
       <label class="radio"><input type="radio" name="prMode" value="note"><span><b>답변 노트</b>질문과 예시 답변을 함께 읽습니다.</span></label>
       <label class="radio"><input type="radio" name="prMode" value="blank"><span><b>쓰기 연습지</b>질문과 이슈의 예시 답변을 가립니다. 질문마다 손으로 쓸 여덟 줄이 생깁니다.</span></label>
       <label class="prrow">질문마다 메모 줄 <select id="prLn"><option value="0">없음</option><option value="2">2줄</option><option value="4">4줄</option><option value="6">6줄</option><option value="10">10줄</option></select></label>
-      <label class="prrow"><input type="checkbox" id="prNotes"> 참고 메모(팁·대책·한전 연결 메모)도 넣기 <small>답변 노트에만</small></label>
+      <label class="prrow"><input type="checkbox" id="prAppendix"> 상세 원문 포함 <small>질문별 후기·이슈 자료·사업소 전화번호</small></label>
+      <label class="prrow"><input type="checkbox" id="prNotes"> 예상 근거·팁·대책도 넣기 <small>답변 노트에만</small></label>
     </div>
   </div>
   <div class="prgo"><span id="prSum" role="status"></span><button class="btn" id="prGo" type="button">인쇄 / PDF 저장</button></div>

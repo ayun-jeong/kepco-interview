@@ -301,7 +301,7 @@ footer p+p{margin-top:8px}
     --j:#000;--j-bg:#fff;--e:#333;--e-bg:#fff;--c:#333;--c-bg:#fff;--p:#333;--p-bg:#fff;--shadow:none}
   html{scroll-behavior:auto}
   body{background:#fff;color:#000;font-size:10pt;line-height:1.5;-webkit-print-color-adjust:economy;print-color-adjust:economy}
-  nav,#practice,#src,#print,#links,.alert,.timeline,header .lead,.fc,.ctrl,#qaList,#gbQa,.screenonly,.noprint{display:none!important}
+  nav,#practice,#print,header .lead,.fc,.ctrl,#qaList,#gbQa,.screenonly,.noprint{display:none!important}
   .printonly{display:block!important}
   .wrap{max-width:none;padding:0 .4mm}
   header{padding:0 0 3mm;border-bottom:2px solid #000;margin-bottom:4mm}
@@ -322,7 +322,8 @@ footer p+p{margin-top:8px}
   .exps{grid-template-columns:repeat(2,1fr);gap:2mm}
   .ehead h3{font-size:10pt}
   .enum{margin:1mm 0;font-size:9pt}
-  .etags{display:none}
+  .etags{gap:2mm;margin-top:1mm}
+  .etags i{background:none;padding:0;font-size:8pt;color:#444}
   .memo{gap:1.5mm}
   .mrow{grid-template-columns:40mm 1fr;gap:1mm 4mm}
   .mrow .mt b{font-size:10pt}
@@ -830,9 +831,36 @@ summary:focus-visible{outline-offset:-3px}
   .gbmx thead th{white-space:normal}
   thead{display:table-header-group}
   .srctable tr{break-inside:avoid}
-  .timeline,.alert{display:none!important}
-  #struct .chapter:first-of-type{display:none}
+  .timeline{display:block;margin:1mm 0 2mm}
+  .timeline li,.timeline li.past,.timeline li.now{display:flex;align-items:baseline;gap:2mm;margin:0;padding:1mm 0;border:0;border-bottom:.5pt solid #bbb;border-radius:0;box-shadow:none;opacity:1;break-inside:avoid}
+  .timeline .dt,.timeline .tt,.timeline .ss,.timeline .dd{position:static;margin:0;padding:0;background:none;font-size:9pt;color:#222}
+  .timeline .dt{min-width:25mm}
+  .alert,.alert.calm{margin:1mm 0;padding:1mm 0;font-size:9pt;color:#111;border:0}
+  .alert b,.alert.calm b{color:inherit}
   .source-link{text-decoration:none}
+  .print-appendix,.digest-detail{display:none!important}
+  .with-appendix details.print-appendix{display:block!important}
+  .with-appendix .digest-detail{display:inline!important}
+  .with-appendix .lprint{columns:auto;font-size:9.5pt;line-height:1.5}
+  .with-appendix .lprint li{padding:1.4mm 0;margin:0;border-bottom:.5pt solid #bbb}
+  .with-appendix .pitem:has(.paper-history),.with-appendix .topic,.gbfold,.gbfold .tablewrap{break-inside:auto}
+  .paper-history,.topic-extra{margin:2mm 0 0;font-size:9pt}
+  .paper-history>b,.gbfold summary,.topic-extra summary,.gbfold .lmonth{break-after:avoid}
+  .paper-history .vlist li{display:block;padding:1mm 0;line-height:1.45;break-inside:avoid}
+  .paper-history .src{display:inline;margin-right:2mm;padding:0;font-size:8pt;background:none;color:#333}
+  .paper-history .vlist small{display:block;color:#444;font-size:8pt}
+  .topic-extra li,.refs li,.gbraw tr{break-inside:avoid}
+  .gbfold{border:0;margin:2mm 0;padding:0}
+  .gbfold .lmonth{font-size:10pt;margin:2mm 0 1mm}
+  .gbfold .gbraw thead th,.gbfold .gbraw td{padding:1mm 1.5mm;font-size:9pt;text-align:left;border-bottom:.5pt solid #bbb}
+  .gbraw td:first-child{white-space:normal;width:24%}
+  #paperPractice p,#reading #src .shead p,#reading #links .shead p{display:block;font-size:9.5pt;color:#222;margin:1mm 0 2mm}
+  #links a[href^="http"]::after,#src a[href^="http"]::after{content:" (" attr(href) ")";font-size:8pt;font-weight:400;color:#444;overflow-wrap:anywhere}
+  #srctable{table-layout:fixed}
+  #srctable th:first-child{width:13%}
+  #srctable th:nth-child(2){width:10%}
+  #srctable th:last-child{width:8%}
+  #srctable th,#srctable td{padding:1mm 1.5mm;font-size:9pt}
   a[href^="#"]::after{content:none}
   .t{box-shadow:none}
 }
