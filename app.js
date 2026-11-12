@@ -115,7 +115,7 @@
       <div class="topic-list">${L.themes.map(topic).join('')}</div>
       <details id="lt-ex" class="chapter archive"><summary>언론 보도에 대한 한전의 설명 · ${EX.length}건</summary>
         <p class="subp">기사에서 제기한 쟁점과 한전이 밝힌 입장을 함께 읽어 보세요.</p><ol class="lexl">${EX.map(exRow).join('')}</ol></details>
-      <details class="chapter archive screenonly"><summary>날짜순 원문 목록 · ${items.length}건</summary>
+      <details id="issue-archive" class="chapter archive screenonly"><summary>날짜순 원문 목록 · ${items.length}건</summary>
         <div class="chips lfilter">${FILT.map(([k, t], i) => `<button class="chip${i ? '' : ' on'}" aria-pressed="${!i}" type="button" data-lf="${k}">${t}</button>`).join('')}</div>
         <div id="latestList">${list('all')}</div></details>
       <div id="sourceDigest" class="printonly"><h4 class="sub">날짜별 이슈 해설 · ${items.length}건</h4><ol class="lprint">${items.map(x => `<li><b>${md(x)} ${SL[x.s]}</b> <a href="${url(x)}">${esc(x.t)}</a><span class="digest-detail"> · ${tag(x)}<br>${esc(x.f)}</span></li>`).join('')}</ol></div>`;
