@@ -320,8 +320,8 @@
   /* 인쇄 화면과 브라우저 인쇄 단축키는 같은 자료 선택 함수를 쓴다. */
   (function printer() {
     const book = [
-      ['struct', '면접 안내·후기'], ['jobdesc', '사무직 직무 설명'], ['me', '내 경험·자소서'],
-      ['topics', '주제별 이슈 해설'], ['memo', '한전 사업·용어·AI 사례·숫자 카드'], ['gb', '경북 근무'],
+      ['company', '한국전력공사 기업 설명'],
+      ['topics', '주제별 이슈 해설'], ['memo', '한전 사업·용어·AI 사례·숫자 카드'], ['jobdesc', '사무직 직무'], ['gb', '경북지역 업무'], ['me', '나의 경험·자기소개서'], ['struct', '면접 안내·후기'],
       ['practice', '말하기 연습 안내']
     ];
     const groupNames = Object.keys(ORDER);
@@ -412,15 +412,12 @@
         const ids = active === 'qa' ? matches().map(q => q.id) : [];
         let secs = sectionIds.includes(active) ? [active] : [];
         if (active === 'memo') secs = ['topics', 'memo'];
-        if (active === 'struct') secs = ['struct', 'jobdesc'];
-        if (active === 'struct' && ['#jobdesc', '#jdBlock'].includes(location.hash)) secs = ['jobdesc'];
         current = { ...st, secs, groups: [], ids };
       }
       const selected = selection(current).sort(SORT);
       const includes = id => current.secs.includes(id);
       const visiblePages = new Set(current.secs);
       if (includes('topics')) visiblePages.add('memo');
-      if (includes('jobdesc')) visiblePages.add('struct');
       if (selected.length || active === 'qa' || includes('practice')) visiblePages.add('qa');
       // 말하기 연습은 질문지 첫머리에 안내하고, 뽑은 문항은 질문 목록에서 한 번만 싣는다.
       visiblePages.delete('practice');
@@ -430,8 +427,6 @@
         s.classList.remove('pfirst');
       });
       pages.find(s => s.classList.contains('paper-page'))?.classList.add('pfirst');
-      $$('#struct > .wrap > :not(.shead):not(#jobdesc)').forEach(el => el.classList.toggle('omit-paper', !includes('struct')));
-      $('#jobdesc').classList.toggle('omit-paper', !includes('jobdesc'));
       const picked = selected.find(q => q.id === $('#pq').dataset.id);
       $('#paperPractice').classList.toggle('omit-paper', !includes('practice'));
       $('#paperPractice p').textContent = $('#practice .shead p').textContent +
@@ -478,7 +473,7 @@
       state.page = Math.floor(i / pageSize); renderQa();
     }
     const target = document.getElementById(id);
-    const initial = !id && new URLSearchParams(location.search).has('p') ? $('#print') : $('#qa');
+    const initial = !id && new URLSearchParams(location.search).has('p') ? $('#print') : $('#company');
     const section = target?.closest('main > section') || initial;
     $$('#reading > section').forEach(s => s.classList.toggle('active-view', s === section));
     document.body.classList.add('reader-ready');
