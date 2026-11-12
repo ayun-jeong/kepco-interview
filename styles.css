@@ -846,7 +846,17 @@ summary:focus-visible{outline-offset:-3px}
 .profile dt{font-weight:700;margin:.8em 0 .2em}
 .profile dd{margin:0;line-height:1.7;color:var(--tx2)}
 #company .chapter>p,#company .profile{max-width:76ch}
+#company-finance .tablewrap{max-width:76ch;margin:1em 0 .5em}
+.finance-trend caption{text-align:left;padding:.6em .8em;font-weight:700;background:var(--bg3)}
+.finance-trend :is(th,td){padding:.45em .65em;color:var(--tx);font-variant-numeric:tabular-nums}
+.finance-trend :is(th,td):not(:first-child){text-align:right}
+@media screen and (max-width:600px){
+  #company-swot .chapter{padding-inline:12px}
+  .finance-trend :is(th,td){padding:.4em .25em}
+}
 @media print{
   .profile dt{break-after:avoid}
   .profile dd,#company .chapter>p{font-size:10pt;line-height:1.5}
+  .finance-trend{break-inside:avoid}
+  #company-swot dd{break-inside:avoid}
 }
