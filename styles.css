@@ -857,6 +857,23 @@ summary:focus-visible{outline-offset:-3px}
 .group-companies th[scope=row]{white-space:nowrap}
 .group-companies tr>:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .group-companies a{color:inherit;text-underline-offset:.2em}
+.ownership-map{max-width:640px;margin:1em 0;line-height:1.5;text-align:center;word-break:keep-all}
+.ownership-root,.ownership-center,.ownership-branches>div{border:1px solid var(--line2);border-radius:6px;padding:.65em .8em}
+.ownership-root,.ownership-center{position:relative;width:fit-content;max-width:100%;margin:0 auto 12px}
+.ownership-center{margin-top:12px;background:var(--j-bg);border-color:var(--j)}
+.ownership-root::after,.ownership-center::after,.ownership-center::before{content:"";position:absolute;left:50%;height:12px;border-left:1px solid var(--tx3)}
+.ownership-root::after,.ownership-center::after{top:100%}
+.ownership-center::before{bottom:100%}
+.ownership-map b,.ownership-map span{display:block}
+.ownership-map span,.ownership-map figcaption{font-size:.94em}
+.ownership-ministry{margin-top:.4em;padding-top:.35em;border-top:1px dashed var(--line2)}
+.ownership-branches{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding-top:12px}
+.ownership-branches>div{margin:0 .25em;align-content:center}
+.ownership-branches::before,.ownership-parents::after{content:"";position:absolute;left:25%;right:25%;height:12px;border:solid var(--tx3)}
+.ownership-branches::before{top:0;border-width:1px 1px 0}
+.ownership-parents{padding-bottom:12px}
+.ownership-parents::after{bottom:0;border-width:0 1px 1px}
+.ownership-map figcaption{margin-top:1em;text-align:left;color:var(--tx2)}
 @media screen and (max-width:600px){
   #company-swot .chapter{padding-inline:12px}
   .finance-trend :is(th,td){padding:.4em .25em}
@@ -871,8 +888,9 @@ summary:focus-visible{outline-offset:-3px}
   .profile dt{break-after:avoid}
   .profile dd,#company .chapter>p{font-size:10pt;line-height:1.5}
   .finance-trend{break-inside:avoid}
-  #company-swot dd{break-inside:avoid}
+  #company-swot dd,#company-history dd{break-inside:avoid}
   #company-group{break-inside:avoid}
+  .ownership-map{break-inside:avoid;font-size:10pt}
   .group-companies{font-size:10pt}
   .group-companies tr{break-inside:avoid}
   .group-companies th,.group-companies td{padding:1mm 2mm}
