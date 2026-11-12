@@ -452,12 +452,14 @@
     const section = target?.closest('main > section') || initial;
     $$('#reading > section').forEach(s => s.classList.toggle('active-view', s === section));
     document.body.classList.add('reader-ready');
+    const currentId = target?.closest('#jobdesc')?.id || section.id;
     $$('#studyNav a, .print-link').forEach(a => {
-      if (a.hash === '#' + section.id) a.setAttribute('aria-current', 'page');
+      if (a.hash === '#' + currentId) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
-    $('#mobileView').textContent = $('h2', section).textContent;
-    document.title = $('h2', section).textContent + ' · 한전 면접노트';
+    const title = $('#studyNav [aria-current]')?.textContent.trim() || $('h2', section).textContent;
+    $('#mobileView').textContent = title;
+    document.title = title + ' · 한전 면접노트';
     closeMenu();
     if (target && section.contains(target) && target !== section) {
       for (let el = target; el && el !== section; el = el.parentElement) if (el.tagName === 'DETAILS') el.open = true;
