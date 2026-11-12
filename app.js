@@ -163,17 +163,19 @@
     const variants = (q.v || []).map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('');
     const raw = variants || notes.length ? `<details class="raw"><summary>${variants ? '실제 질문 문장과 출처' : '질문 배경과 참고 자료'}</summary>
       <ul class="vlist">${variants}</ul>${notes.map(([v, label]) => `<div class="defbox"><b>${label}</b>${esc(v)}</div>`).join('')}</details>` : '';
+    const stakeholderLink = q.id === 'csr' ? '<p><a class="elink" href="#company-stakeholders">이해관계자 8개 집단의 관심사와 소통 채널 보기</a></p>' : '';
     return `<details class="qa" id="${prefix}-${q.id}"><summary><span class="qno">Q${String(q.no).padStart(2, '0')}</span>
       <span class="qt">${esc(q.q)}</span><span class="qm">${esc(q.cat)} · ${metaOf(q)}</span></summary>
-      <div class="qa-body">${answerBody(A[q.id] || {}, true)}${raw}</div></details>`;
+      <div class="qa-body">${stakeholderLink}${answerBody(A[q.id] || {}, true)}${raw}</div></details>`;
   }
   /* 인쇄용: 접히지 않는 블록 */
-  function printItem(q) {
+  function printItem(q, includeStakeholders) {
     const g = grade(q); const a = A[q.id] || {};
     const def = q.def ? `<div class="pdef"><b>정의</b>${esc(q.def)}</div>` : '';
     const ref = [q.basis && `예상 근거 · ${q.basis}`, q.fix && `대책 · ${q.fix}`, q.link && `한전 연결 메모 · ${q.link}`, q.tip && `팁 · ${q.tip}`].filter(Boolean);
     const refs = ref.length ? `<div class="pref">${ref.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : '';
-    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${def}${answerBody(a)}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
+    const stakeholders = includeStakeholders && q.id === 'csr' ? $('#company-stakeholders table').outerHTML : '';
+    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${def}${answerBody(a)}${stakeholders}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
   }
   const state = { group: '전체', q: '', page: 0 };
   const pageSize = 12;
@@ -445,7 +447,8 @@
       $('#sourceDigest').classList.toggle('omit-paper', !includes('memo') || !current.appendix);
       $('#printQa').innerHTML = groupNames.map(g => {
         const list = selected.filter(q => q.group === g);
-        return list.length ? `<div class="pgrp"><h3 class="pgh">${g} <small>${list.length}문항</small></h3>${list.map(printItem).join('')}</div>` : '';
+        const includeStakeholders = !includes('company') && current.mode !== 'blank';
+        return list.length ? `<div class="pgrp"><h3 class="pgh">${g} <small>${list.length}문항</small></h3>${list.map(q => printItem(q, includeStakeholders)).join('')}</div>` : '';
       }).join('') || (includes('practice') || includes('cards') ? '' : '<p>선택한 질문이 없습니다.</p>');
       document.body.classList.toggle('pm-blank', current.mode === 'blank');
       document.body.classList.toggle('pn-on', current.notes);
