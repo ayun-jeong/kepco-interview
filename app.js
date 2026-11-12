@@ -102,8 +102,8 @@
         <div class="topic-text"><dl><dt>어떤 이슈인가요?</dt><dd>${esc(t.f)}</dd><dt>왜 중요한가요?</dt><dd>${esc(t.why)}</dd></dl>
         <div class="issue-answer"><b>면접 답변 예시</b><p>${esc(t.a)}</p></div>
         ${representative ? `<p class="topic-source">${citation(representative)}</p>` : ''}
-        <details class="topic-extra print-appendix"><summary>관련 질문과 자료</summary>${me(t.e)}
-          <div class="jdq">${ql(t.ids)}</div><p class="mn">${esc(t.n)}</p><ul>${list.map(x => `<li>${citation(x)}</li>`).join('')}</ul>
+        <details class="topic-extra print-appendix"><summary>관련 질문과 경험<span class="screenonly"> · 자료</span></summary>${me(t.e)}
+          <div class="jdq">${ql(t.ids)}</div><p class="mn">${esc(t.n)}</p><ul class="screenonly">${list.map(x => `<li>${citation(x)}</li>`).join('')}</ul>
         </details></div></details>`;
     };
     const exRow = x => `<li><span class="ld">${md(x)}</span><div><a href="${url(x)}" target="_blank" rel="noopener">${esc(x.t)}</a><p>${esc(x.r || x.f)}</p></div></li>`;
@@ -118,7 +118,7 @@
       <details class="chapter archive screenonly"><summary>날짜순 원문 목록 · ${items.length}건</summary>
         <div class="chips lfilter">${FILT.map(([k, t], i) => `<button class="chip${i ? '' : ' on'}" aria-pressed="${!i}" type="button" data-lf="${k}">${t}</button>`).join('')}</div>
         <div id="latestList">${list('all')}</div></details>
-      <div id="sourceDigest" class="printonly"><h4 class="sub">날짜순 원문 목록 · ${items.length}건</h4><ol class="lprint">${items.map(x => `<li><b>${md(x)} ${SL[x.s]}</b> <a href="${url(x)}">${esc(x.t)}</a><span class="digest-detail"> · ${tag(x)}<br>${esc(x.f)}</span></li>`).join('')}</ol></div>`;
+      <div id="sourceDigest" class="printonly"><h4 class="sub">날짜별 이슈 해설 · ${items.length}건</h4><ol class="lprint">${items.map(x => `<li><b>${md(x)} ${SL[x.s]}</b> <a href="${url(x)}">${esc(x.t)}</a><span class="digest-detail"> · ${tag(x)}<br>${esc(x.f)}</span></li>`).join('')}</ol></div>`;
     el.addEventListener('click', e => { const b = e.target.closest('[data-lf]'); if (!b) return; $$('[data-lf]', el).forEach(z => { z.classList.toggle('on', z === b); z.setAttribute('aria-pressed', z === b); }); $('#latestList').innerHTML = list(b.dataset.lf); });
   })();
 
@@ -155,16 +155,9 @@
       ${compact ? `<details class="answer-extra"><summary>꼬리질문과 답변 근거</summary>${extras}</details>` : extras}</div>`;
   }
   const metaOf = q => q.essay ? '제출한 자소서' : q.pred ? '예상 질문' : `후기 ${q.n}곳`;
-  function questionVariants(q, showSource = false) {
-    return (q.v || []).map(([k, t]) => {
-      const src = S.get(k);
-      const byline = showSource && src ? `<small>${esc(src.site)} · ${esc(src.title)}</small>` : '';
-      return `<li>${srcBadge(k)}<span>${esc(t)}${byline}</span></li>`;
-    }).join('');
-  }
   function card(q, prefix = 'q') {
     const notes = [[q.def, '개념'], [q.basis, '예상 근거'], [q.fix, '대응 방법'], [q.link, '한전과 연결'], [q.tip, '연습 메모']].filter(([v]) => v);
-    const variants = questionVariants(q);
+    const variants = (q.v || []).map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('');
     const raw = variants || notes.length ? `<details class="raw"><summary>${variants ? '실제 질문 문장과 출처' : '질문 배경과 참고 자료'}</summary>
       <ul class="vlist">${variants}</ul>${notes.map(([v, label]) => `<div class="defbox"><b>${label}</b>${esc(v)}</div>`).join('')}</details>` : '';
     return `<details class="qa" id="${prefix}-${q.id}"><summary><span class="qno">Q${String(q.no).padStart(2, '0')}</span>
@@ -172,14 +165,12 @@
       <div class="qa-body">${answerBody(A[q.id] || {}, true)}${raw}</div></details>`;
   }
   /* 인쇄용: 접히지 않는 블록 */
-  function printItem(q, withVariants) {
+  function printItem(q) {
     const g = grade(q); const a = A[q.id] || {};
     const def = q.def ? `<div class="pdef"><b>정의</b>${esc(q.def)}</div>` : '';
     const ref = [q.basis && `예상 근거 · ${q.basis}`, q.fix && `대책 · ${q.fix}`, q.link && `한전 연결 메모 · ${q.link}`, q.tip && `팁 · ${q.tip}`].filter(Boolean);
     const refs = ref.length ? `<div class="pref">${ref.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : '';
-    const variants = withVariants ? questionVariants(q, true) : '';
-    const history = variants ? `<div class="paper-history"><b>실제 질문 문장과 출처 · ${q.v.length}건</b><ul class="vlist">${variants}</ul></div>` : '';
-    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${def}${answerBody(a)}${refs}${history}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
+    return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${def}${answerBody(a)}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
   }
   const state = { group: '전체', q: '', page: 0 };
   const pageSize = 12;
@@ -276,9 +267,9 @@
     const O = G.offices, BR = O.filter(o => o.kind === '지사');
     const has = (o, t) => o.rows.some(r => t.kw.some(k => (r[0] + ' ' + r[1]).includes(k)));
     const link = o => `https://www.kepco.co.kr/home/about/locations/gyeongbuk/${o.kind === '본부' ? 'headquarters' : 'branch'}.do?branchNo=${o.no}`;
-    const depts = o => { const m = new Map(); o.rows.forEach(r => m.set(r[0], (m.get(r[0]) || 0) + 1)); return [...m].map(([d, n]) => `${esc(d)} ${n}`).join(' · '); };
+    const depts = o => { const m = new Map(); o.rows.forEach(r => m.set(r[0], (m.get(r[0]) || 0) + 1)); return [...m].map(([d, n]) => `${esc(d)}<span class="screenonly"> ${n}</span>`).join(' · '); };
     const xc = o => o.kind === '지사' ? '' : ' x';
-    const sum = `<div class="tablewrap gbtw"><table class="gbtable"><thead><tr><th>사업소</th><th>관할</th><th>부서 · 번호 줄 수</th><th>국번</th></tr></thead><tbody>${O.map(o => `<tr><td><a href="${link(o)}" target="_blank" rel="noopener">${esc(o.name)}</a><small>${esc(o.addr)}</small></td><td>${esc(o.prec)}</td><td>${depts(o)}</td><td class="gbtel">${esc(o.tel)}</td></tr>`).join('')}</tbody></table></div>`;
+    const sum = `<div class="tablewrap gbtw"><table class="gbtable"><thead><tr><th>사업소</th><th>관할</th><th>부서<span class="screenonly"> · 번호 줄 수</span></th><th class="screenonly">국번</th></tr></thead><tbody>${O.map(o => `<tr><td><a href="${link(o)}" target="_blank" rel="noopener">${esc(o.name)}</a><small class="screenonly">${esc(o.addr)}</small></td><td>${esc(o.prec)}</td><td>${depts(o)}</td><td class="gbtel screenonly">${esc(o.tel)}</td></tr>`).join('')}</tbody></table></div>`;
     const groups = [...new Set(G.tasks.map(t => t.g))];
     const mx = `<div class="tablewrap gbtw"><table class="gbmx"><thead><tr><th>업무</th>${O.map(o => `<th class="gbh${xc(o)}">${esc(o.short)}</th>`).join('')}<th class="gbh">지사</th></tr></thead><tbody>`
       + groups.map(g => `<tr class="gbg"><th colspan="${O.length + 2}">${esc(g)}</th></tr>` + G.tasks.filter(t => t.g === g).map(t => { const n = BR.filter(o => has(o, t)).length; return `<tr><td class="gbt"><b>${esc(t.t)}</b>${t.d ? `<small>${esc(t.d)}</small>` : ''}</td>${O.map(o => `<td class="gbc${xc(o)}">${has(o, t) ? '●' : ''}</td>`).join('')}<td class="gbn${n === BR.length ? ' all' : ''}">${n}/${BR.length}</td></tr>`; }).join('')).join('')
@@ -295,9 +286,9 @@
         `<tr><th>${esc(t.t)}${t.d ? `<small>${esc(t.d)}</small>` : ''}</th><td>${esc(officeNames(t))}</td></tr>`).join('')}</tbody>`).join('')}</table></div>`;
     const pts = `<div class="ccard gbpts"><span class="lbl">번호표로 본 포인트 ${G.points.length}</span><ul class="plain">${G.points.map(([t, u]) => `<li><b>${esc(t)}</b> ${esc(u)}</li>`).join('')}</ul><div class="jdq">${ql(G.ids)}</div></div>`;
     const total = O.reduce((n, o) => n + o.rows.length, 0);
-    const raw = `<details class="lfold gbfold print-appendix"><summary>사업소별 업무별 전화번호 원문 ${total}줄</summary>${O.map(o => `<h5 class="lmonth">${esc(o.name)} <small>${o.rows.length}줄 · ${esc(o.tel)}</small></h5><div class="tablewrap gbtw"><table class="gbraw"><thead><tr><th>부서</th><th>담당 업무</th><th>전화번호</th></tr></thead><tbody>${o.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="gbtel">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>`).join('')}</details>`;
+    const raw = `<details class="lfold gbfold screenonly"><summary>사업소별 업무별 전화번호 원문 ${total}줄</summary>${O.map(o => `<h5 class="lmonth">${esc(o.name)} <small>${o.rows.length}줄 · ${esc(o.tel)}</small></h5><div class="tablewrap gbtw"><table class="gbraw"><thead><tr><th>부서</th><th>담당 업무</th><th>전화번호</th></tr></thead><tbody>${o.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="gbtel">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>`).join('')}</details>`;
     el.innerHTML = `<p class="subp">${esc(G.intro)}</p>`
-      + `<h4 class="ideah">사업소 ${O.length}곳 한눈에 · 이름을 누르면 홈페이지</h4>${sum}`
+      + `<h4 class="ideah">사업소 ${O.length}곳의 관할과 부서<span class="screenonly"> · 이름을 누르면 홈페이지</span></h4>${sum}`
       + `<div class="screenonly"><h4 class="ideah">사업소별 업무 · ●는 전화번호표에 표시된 업무</h4>${mx}</div>${paperMap}`
       + pts + raw;
   })();
@@ -329,9 +320,9 @@
   /* 인쇄 화면과 브라우저 인쇄 단축키는 같은 자료 선택 함수를 쓴다. */
   (function printer() {
     const book = [
-      ['struct', '면접 안내·일정·후기'], ['jobdesc', '사무직 직무 설명'], ['me', '내 경험·자소서'],
+      ['struct', '면접 안내·후기'], ['jobdesc', '사무직 직무 설명'], ['me', '내 경험·자소서'],
       ['topics', '주제별 이슈 해설'], ['memo', '한전 사업·용어·AI 사례·숫자 카드'], ['gb', '경북 근무'],
-      ['practice', '말하기 연습 안내'], ['links', '참고 사이트'], ['src', '자료 출처']
+      ['practice', '말하기 연습 안내']
     ];
     const groupNames = Object.keys(ORDER);
     const sectionIds = book.map(([id]) => id);
@@ -419,7 +410,7 @@
       let current = st;
       if (active !== 'print') {
         const ids = active === 'qa' ? matches().map(q => q.id) : [];
-        let secs = [active];
+        let secs = sectionIds.includes(active) ? [active] : [];
         if (active === 'memo') secs = ['topics', 'memo'];
         if (active === 'struct') secs = ['struct', 'jobdesc'];
         if (active === 'struct' && ['#jobdesc', '#jdBlock'].includes(location.hash)) secs = ['jobdesc'];
@@ -433,6 +424,7 @@
       if (selected.length || active === 'qa' || includes('practice')) visiblePages.add('qa');
       // 말하기 연습은 질문지 첫머리에 안내하고, 뽑은 문항은 질문 목록에서 한 번만 싣는다.
       visiblePages.delete('practice');
+      $('#paperEmpty').classList.toggle('omit-paper', visiblePages.size > 0);
       pages.forEach(s => {
         s.classList.toggle('paper-page', visiblePages.has(s.id));
         s.classList.remove('pfirst');
@@ -448,10 +440,10 @@
       $$('#latest, .topic-period, .topic-list').forEach(el => el.classList.toggle('omit-paper', !includes('topics')));
       $('#memoLibrary').classList.toggle('omit-paper', !includes('memo'));
       $('#lt-ex').classList.toggle('omit-paper', !includes('memo'));
-      $('#sourceDigest').classList.toggle('omit-paper', !includes('memo'));
+      $('#sourceDigest').classList.toggle('omit-paper', !includes('memo') || !current.appendix);
       $('#printQa').innerHTML = groupNames.map(g => {
         const list = selected.filter(q => q.group === g);
-        return list.length ? `<div class="pgrp"><h3 class="pgh">${g} <small>${list.length}문항</small></h3>${list.map(q => printItem(q, current.appendix && current.mode === 'note')).join('')}</div>` : '';
+        return list.length ? `<div class="pgrp"><h3 class="pgh">${g} <small>${list.length}문항</small></h3>${list.map(printItem).join('')}</div>` : '';
       }).join('') || (includes('practice') ? '' : '<p>선택한 질문이 없습니다.</p>');
       document.body.classList.toggle('pm-blank', current.mode === 'blank');
       document.body.classList.toggle('pn-on', current.notes);
