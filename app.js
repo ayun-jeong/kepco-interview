@@ -22,15 +22,12 @@
   const ORDER = { '경험·공통': 0, '직무': 1, '시사·경북': 2, '자소서': 3 };
   const RECENT = new Set(window.RECENT_SRC || []);
   Q.forEach(q => { q.rec = q.srcs.filter(k => RECENT.has(k)); });
-  const srcLabel = k => { const s = S.get(k) || {}; return `${s.yr || ''} ${s.type || ''}${s.track === '기술' ? '(기술직)' : s.track === '불명' ? '(직군 불명)' : ''}`.trim(); };
   const eix = q => q.essay ? +q.id.slice(2, q.id.indexOf('_')) * 100 + +q.id.split('_')[1] : 0;
   const SORT = (a, b) => ORDER[a.group] - ORDER[b.group] || eix(a) - eix(b) || b.n - a.n || a.q.localeCompare(b.q, 'ko');
   [...Q].sort(SORT).forEach((q, i) => { q.no = i + 1; });
   const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
 
   /* ───── 헤더 ───── */
-  const AX = window.AIX || { now: [], ideas: [] };
-  const AXN = (AX.ideas || []).reduce((n, g) => n + g.list.length, 0);
   const LT = window.LATEST || { themes: [], items: [] };
   const qaTypes = [['기출', Q.filter(q => !q.pred && !q.essay)], ['예상', Q.filter(q => q.pred)], ['자소서', Q.filter(q => q.essay)]];
   $('#qaTotals').innerHTML = qaTypes.map(([label, qs]) => `<div><dt>${label}</dt><dd>${qs.length}</dd></div>`).join('');
@@ -71,12 +68,10 @@
   /* ───── 이슈 암기 ───── */
   const sourceLink = ([title, url]) => `<a class="source-link" href="${esc(url)}" target="_blank" rel="noopener">${esc(title)} ↗</a>`;
   const memoRow = x => `<div class="mrow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span></div><div class="mf">${esc(x.f)}</div>${x.a ? `<div class="ma"><b>답변</b>${esc(x.a)}</div>` : ''}${x.e && EXP.has(x.e) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${x.e}">${esc(EXP.get(x.e).t)}</a> · ${esc(EXP.get(x.e).n)}</div>` : ''}${x.ref ? `<div class="mex">${sourceLink(x.ref)}</div>` : ''}${lines(2, 'mlines')}</div>`;
-  $('#memoBasics').innerHTML = MEMO.basics.map(memoRow).join('');
-  $('#memoDoing').innerHTML = MEMO.doing.map(memoRow).join('');
-  $('#memoNews').innerHTML = MEMO.news.map(memoRow).join('');
-  $('#memoDict').innerHTML = (MEMO.dict || []).map(memoRow).join('');
-  $('#memoVideo').innerHTML = (MEMO.video || []).map(memoRow).join('');
-  $('#memoVideo2').innerHTML = (MEMO.video2 || []).map(memoRow).join('');
+  $('#sectorIssues').innerHTML = MEMO.industry.map(memoRow).join('');
+  $('#workNotes').innerHTML = MEMO.job.map(memoRow).join('');
+  $('#localNotes').innerHTML = MEMO.local.map(memoRow).join('');
+  $('#memoVideo').innerHTML = MEMO.video.map(memoRow).join('');
   /* ───── 최신 이슈 · 2026.8 이후 ───── */
   (function latest() {
     const L = window.LATEST, el = $('#latestBlock'); if (!L || !el) return;
@@ -92,29 +87,37 @@
     const of = k => items.filter(x => x.th === k);
     const isStar = x => TH.get(x.th).star || x.s === 'ex';
     const tag = x => esc(short(TH.get(x.th)));
-    const EX = items.filter(x => x.s === 'ex');
+
+    const companyRef = {
+      cs: ['company-business', '한전의 사업'], grid: ['company-strategy', '전력망 확충 전략'],
+      mega: ['company-strategy', '전력 인프라 전략'], ai: ['company-ai', 'AI 사업 현황'],
+      fin: ['company-finance', '재무제표와 기준일'], dsm: ['company-business', '수요관리의 역할'],
+      safe: ['company-esg', '현장 안전'], tech: ['company-strategy', '연구개발과 기술 사업화'],
+      esg: ['company-esg', 'ESG 활동'], hr: ['company-talent', '인재상'],
+      pr: ['company-values', '고객감동과 상생소통'], eco: ['company-esg', '협력사 안전']
+    };
     const topic = (t, index) => {
       const list = of(t.k);
       const representative = list.find(x => (x.no || x.p || x.v) === t.source) || list[0];
+      const background = companyRef[t.k];
+      const datedBrief = window.AIX?.now.find(x => x.issue === t.k);
       const citation = x => sourceLink([`${md(x)} ${SL[x.s]} · ${x.t}`, url(x)]);
       return `<details class="topic" id="lt-${t.k}" ${index === 0 ? 'open' : ''}>
         <summary><span>${esc(t.t)}</span><span class="topic-count">${list.length}건</span></summary>
         <div class="topic-text"><dl><dt>어떤 이슈인가요?</dt><dd>${esc(t.f)}</dd><dt>왜 중요한가요?</dt><dd>${esc(t.why)}</dd></dl>
         <div class="issue-answer"><b>면접 답변 예시</b><p>${esc(t.a)}</p></div>
         ${representative ? `<p class="topic-source">${citation(representative)}</p>` : ''}
-        <details class="topic-extra print-appendix"><summary>관련 질문과 경험<span class="screenonly"> · 자료</span></summary>${me(t.e)}
-          <div class="jdq">${ql(t.ids)}</div><p class="mn">${esc(t.n)}</p><ul class="screenonly">${list.map(x => `<li>${citation(x)}</li>`).join('')}</ul>
+        ${background ? `<p class="screenonly"><a href="#${background[0]}">기업 설명 · ${esc(background[1])}</a></p>` : ''}
+        <details class="topic-extra print-appendix"><summary>관련 질문과 경험</summary>${me(t.e)}
+          <div class="jdq">${ql(t.ids)}</div><p class="mn">${esc(t.n)}</p>${datedBrief ? `<p>${esc(datedBrief.w)}</p>` : ''}
         </details></div></details>`;
     };
-    const exRow = x => `<li><span class="ld">${md(x)}</span><div><a href="${url(x)}" target="_blank" rel="noopener">${esc(x.t)}</a><p>${esc(x.r || x.f)}</p></div></li>`;
     const FILT = [['all', '전체', () => true], ['star', '★ 반복·중요', isStar], ['pr', '보도', x => x.s === 'pr'], ['ex', '해명', x => x.s === 'ex'], ['mag', '사보', x => x.s === 'mag'], ['yt', '영상', x => x.s === 'yt']];
     const months = [...new Set(items.map(x => x.d.slice(0, 7)))];
     const row = x => `<li class="lrow${isStar(x) ? ' st' : ''}"><span class="ld">${md(x)}</span><span class="lb s-${x.s}">${SL[x.s]}</span><div class="lbody"><a class="lt" href="${url(x)}" target="_blank" rel="noopener">${esc(x.t)}</a><span class="lth">${tag(x)}</span><p>${esc(x.f)}</p></div></li>`;
     const list = f => { const fn = FILT.find(z => z[0] === f)[2]; return months.map(m => { const xs = items.filter(x => x.d.slice(0, 7) === m && fn(x)); return xs.length ? `<h5 class="lmonth">${+m.slice(5, 7)}월 <small>${xs.length}건</small></h5><ol class="llist">${xs.map(row).join('')}</ol>` : ''; }).join(''); };
     el.innerHTML = `<p class="topic-period">한전 보도·설명자료, 사보, 공식 영상 · ${esc(L.range)}</p>
       <div class="topic-list">${L.themes.map(topic).join('')}</div>
-      <details id="lt-ex" class="chapter archive"><summary>언론 보도에 대한 한전의 설명 · ${EX.length}건</summary>
-        <p class="subp">기사에서 제기한 쟁점과 한전이 밝힌 입장을 함께 읽어 보세요.</p><ol class="lexl">${EX.map(exRow).join('')}</ol></details>
       <details id="issue-archive" class="chapter archive screenonly"><summary>날짜순 원문 목록 · ${items.length}건</summary>
         <div class="chips lfilter">${FILT.map(([k, t], i) => `<button class="chip${i ? '' : ' on'}" aria-pressed="${!i}" type="button" data-lf="${k}">${t}</button>`).join('')}</div>
         <div id="latestList">${list('all')}</div></details>
@@ -214,10 +217,6 @@
     state.page += Number(b.dataset.step); renderQa(); $('#qaList summary').focus();
   });
   renderQa();
-  const RECENT_Q = Q.filter(q => q.rec.length).sort((a, b) => b.rec.length - a.rec.length || a.no - b.no);
-  $('#recentNote').textContent = `최근 후기에서 나온 질문 ${RECENT_Q.length}개 중 많이 나온 30개. 전체 목록은 질문·답변에서 ‘최근 기출’을 선택하면 볼 수 있습니다.`;
-  $('#recentList').innerHTML = RECENT_Q.slice(0, 30).map(q => `<li><a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q)}</a><small>${q.rec.length}곳 · ${[...new Set(q.rec.map(srcLabel))].join(', ')}</small></li>`).join('');
-
   /* ───── 직무기술서 ───── */
   (function jobdesc() {
     const J = window.JOBDESC, el = $('#jdBlock'); if (!J || !el) return;
@@ -238,14 +237,19 @@
     const X = window.AIX, elN = $('#aixNow'), elI = $('#aixIdeas'); if (!X || !elN || !elI) return;
     const QB = new Map(Q.map(q => [q.id, q]));
     const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
-    const exp = k => k && EXP.has(k) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a> · ${esc(EXP.get(k).n)}</div>` : '';
-    const inventory = X.inventory.map(g =>
-      `<h4 class="ideah">${esc(g.status)} · ${g.cases.length}건</h4><div class="memo">` +
-      g.cases.map(c => `<div class="mrow"><div class="mt"><b>${esc(c.t)}</b><small class="aw">자료 ${c.page}쪽</small></div><div class="mf">${esc(c.f)}</div></div>`).join('') + '</div>'
-    ).join('');
-    elN.innerHTML = `<p class="subp">${esc(X.intro)}</p>${inventory}<h4 class="ideah">보도자료·사보로 보는 사업 경과와 사무직 업무</h4><div class="memo">` + X.now.map(x => `<div class="mrow arow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span><small class="aw">${esc(x.w)}</small></div><div class="mf">${esc(x.f)}</div><div class="ma"><b>사무직</b>${expLink(x.a)}</div>${exp(x.e)}<div class="mex aq jdq">${ql(x.ids)}</div>${lines(2, 'mlines')}</div>`).join('') + `</div>`;
+    const updates = new Map(X.now.filter(x => x.project).map(x => [x.project, x]));
+
+    const aiNote = (x, title, status) => `<div class="mrow arow"><div class="mt"><b>${esc(title)}</b><small class="aw">${esc(status)}${status ? ' · ' : ''}${esc(x.w)}</small></div><div class="mf">${esc(x.f)}</div><div class="mex jdq screenonly">${ql(x.ids)}</div></div>`;
+    const inventory = X.inventory.map(g => `<h4 class="ideah">${esc(g.status)} · 2026년 6월 말 기준</h4><div class="memo">${g.cases.map(c => {
+      const update = updates.get(c.project);
+      if (update) return aiNote(update, c.t, `6월 자료 ${c.page}쪽`);
+      return `<div class="mrow"><div class="mt"><b>${esc(c.t)}</b><small class="aw">6월 자료 ${c.page}쪽</small></div><div class="mf">${esc(c.f)}</div></div>`;
+    }).join('')}</div>`).join('');
+    const otherProjects = X.now.filter(x => !x.project && !x.issue);
+    elN.innerHTML = '<p class="subp">추진 단계는 2026년 6월 30일 한전 자료 기준이다. 후속 발표가 있는 사업에는 발표 시점을 함께 적었다.</p>'
+      + inventory + `<h4 class="ideah">그 밖의 추진 사업</h4><div class="memo">${otherProjects.map(x => aiNote(x, x.t, '')).join('')}</div>`;
     const idea = pfx => (x, i) => `<div class="ccard idea"${x.id ? ` id="idea-${esc(x.id)}"` : ''}><span class="lbl">${pfx} ${i + 1}</span><h4>${esc(x.t)}</h4><p><b>불편</b>${esc(x.p)}</p><p><b>어떻게</b>${esc(x.h)}</p><p><b>한전 업무</b>${esc(x.l)}</p><p><b>내 경험</b>${expLink(x.e)}</p><p><b>꼬리</b>${esc(x.f)}</p></div>`;
-    elI.innerHTML = `<p class="subp">${esc(X.frame)}</p>`
+    elI.innerHTML = `<p class="subp">${esc(X.frame)} <a class="elink" href="#company-ai">한전이 실제로 추진하는 AI 사업 확인</a></p><p class="subp">${esc(MEMO.aiAdvice[0].a)}</p>`
       + '<h4 class="ideah">다른 공기업 사례의 한전 적용 가능성 · 2026.6.30 자료</h4><div class="memo">'
       + X.peers.map(p => `<div class="mrow"><div class="mt"><b>${p.idea ? `<a href="#idea-${esc(p.idea)}">${esc(p.t)}</a>` : esc(p.t)}</b></div><div class="mf">${esc(p.f)}</div></div>`).join('') + '</div>'
       + `<p class="ideanav">${X.ideas.map((g, i) => `<a href="#idea-${g.k}">${i + 1}. ${esc(g.t)} ${g.list.length}</a>`).join('')}</p>`
@@ -256,7 +260,7 @@
   /* ───── 경북 ───── */
   $('#gb30').textContent = ME.gbMotive30; $('#gb60').textContent = ME.gbMotive60;
   const GBQ = ['p_why', 'relocate', 'p_local', 'p_elder', 'merge'].map(id => Q.find(q => q.id === id)).filter(Boolean);
-  $('#gbQa').innerHTML = GBQ.filter(q => q.id !== 'p_why').map(q => card(q, 'gbq')).join('');
+  $('#gbQa').innerHTML = GBQ.map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q)}</a>`).join('');
   $('#gbNote').textContent = `경북 관련 질문은 질문·답변에서 확인하세요. ${GBQ.map(q => `Q${q.no} ${q.q}`).join(' / ')}`;
 
   /* ───── 경북본부·지사가 하는 일 (업무별 전화번호) ───── */
@@ -321,8 +325,8 @@
   (function printer() {
     const book = [
       ['company', '한국전력공사 기업 설명'],
-      ['topics', '주제별 이슈 해설'], ['memo', '한전 사업·용어·AI 사례·숫자 카드'], ['jobdesc', '사무직 직무'], ['gb', '경북지역 업무'], ['me', '나의 경험·자기소개서'], ['struct', '면접 안내·후기'],
-      ['practice', '말하기 연습 안내']
+      ['topics', '기업 이슈 · 주제별 해설'], ['memo', '기업 이슈 · 제도 변화와 발표 자료'], ['jobdesc', '사무직 직무'], ['gb', '경북지역 업무'], ['me', '나의 경험·자기소개서'], ['struct', '면접 안내·후기'],
+      ['cards', '숫자 암기 카드'], ['practice', '말하기 연습 안내']
     ];
     const groupNames = Object.keys(ORDER);
     const sectionIds = book.map(([id]) => id);
@@ -336,6 +340,7 @@
         st = { ...defaults, ids: null, ...saved };
         // 이전 설정에서 'memo'는 주제 해설과 참고 자료를 함께 뜻했다.
         if (!saved.version && st.secs.includes('memo')) st.secs.push('topics');
+        if ((saved.version || 0) < 4 && st.secs.includes('memo')) st.secs.push('cards');
         if ((saved.version || 0) < 3 && st.secs.includes('struct')) st.secs.push('jobdesc');
       }
     } catch {}
@@ -379,7 +384,7 @@
       $('#prNotes').checked = st.notes; $('#prNotes').disabled = st.mode === 'blank';
       $('#prSum').textContent = [st.secs.length && `자료 ${st.secs.length}종`, selected.length && `질문 ${selected.length}개`].filter(Boolean).join(' · ') || '인쇄할 자료를 선택하세요.';
       $('#prGo').disabled = !selected.length && !st.secs.length;
-      try { localStorage.setItem('kepco.print', JSON.stringify({ ...st, version: 3 })); } catch {}
+      try { localStorage.setItem('kepco.print', JSON.stringify({ ...st, version: 4 })); } catch {}
     }
     const choose = (secs, groups, ids = null) => { Object.assign(st, { secs, groups, ids }); apply(); };
     $('#print').addEventListener('change', e => {
@@ -409,8 +414,10 @@
       const active = pages.find(s => s.classList.contains('active-view'))?.id || 'qa';
       let current = st;
       if (active !== 'print') {
-        const ids = active === 'qa' ? matches().map(q => q.id) : [];
+        const cardView = active === 'qa' && $('#memory-cards').contains(document.getElementById(location.hash.slice(1)));
+        const ids = active === 'qa' && !cardView ? matches().map(q => q.id) : [];
         let secs = sectionIds.includes(active) ? [active] : [];
+        if (cardView) secs = ['cards'];
         if (active === 'memo') secs = ['topics', 'memo'];
         current = { ...st, secs, groups: [], ids };
       }
@@ -418,7 +425,7 @@
       const includes = id => current.secs.includes(id);
       const visiblePages = new Set(current.secs);
       if (includes('topics')) visiblePages.add('memo');
-      if (selected.length || active === 'qa' || includes('practice')) visiblePages.add('qa');
+      if (selected.length || active === 'qa' || includes('practice') || includes('cards')) visiblePages.add('qa');
       // 말하기 연습은 질문지 첫머리에 안내하고, 뽑은 문항은 질문 목록에서 한 번만 싣는다.
       visiblePages.delete('practice');
       $('#paperEmpty').classList.toggle('omit-paper', visiblePages.size > 0);
@@ -434,12 +441,12 @@
       $('#topicPages').classList.toggle('omit-paper', !includes('topics') && !includes('memo'));
       $$('#latest, .topic-period, .topic-list').forEach(el => el.classList.toggle('omit-paper', !includes('topics')));
       $('#memoLibrary').classList.toggle('omit-paper', !includes('memo'));
-      $('#lt-ex').classList.toggle('omit-paper', !includes('memo'));
+      $('#memory-cards').classList.toggle('omit-paper', !includes('cards'));
       $('#sourceDigest').classList.toggle('omit-paper', !includes('memo') || !current.appendix);
       $('#printQa').innerHTML = groupNames.map(g => {
         const list = selected.filter(q => q.group === g);
         return list.length ? `<div class="pgrp"><h3 class="pgh">${g} <small>${list.length}문항</small></h3>${list.map(printItem).join('')}</div>` : '';
-      }).join('') || (includes('practice') ? '' : '<p>선택한 질문이 없습니다.</p>');
+      }).join('') || (includes('practice') || includes('cards') ? '' : '<p>선택한 질문이 없습니다.</p>');
       document.body.classList.toggle('pm-blank', current.mode === 'blank');
       document.body.classList.toggle('pn-on', current.notes);
       document.body.classList.toggle('with-appendix', current.appendix);
@@ -472,7 +479,11 @@
       }
       state.page = Math.floor(i / pageSize); renderQa();
     }
-    const target = document.getElementById(id);
+    if (id === 'recent-questions') {
+      state.group = '최근 기출'; state.q = $('#qaq').value = ''; state.page = 0; renderQa();
+    }
+    const moved = { 'lt-ex': 'issue-archive', 'recent-questions': 'qa', memoBasics: 'company-business', memoDoing: 'company-strategy', memoDict: 'company-business', memoVideo2: 'lt-mega' };
+    const target = document.getElementById(moved[id] || id);
     const initial = !id && new URLSearchParams(location.search).has('p') ? $('#print') : $('#company');
     const section = target?.closest('main > section') || initial;
     $$('#reading > section').forEach(s => s.classList.toggle('active-view', s === section));
@@ -489,6 +500,10 @@
     if (target && section.contains(target) && target !== section) {
       for (let el = target; el && el !== section; el = el.parentElement) if (el.tagName === 'DETAILS') el.open = true;
       target.scrollIntoView({ block: 'start', behavior: 'instant' });
+      if (id === 'lt-ex' || id === 'issue-archive') {
+        const filter = id === 'lt-ex' ? 'ex' : 'all';
+        $(`[data-lf="${filter}"]`, target).click();
+      }
     } else window.scrollTo({ top: 0, behavior: 'instant' });
   }
   window.addEventListener('hashchange', navigate);
@@ -498,7 +513,7 @@
   });
   navigate();
 
-  const NUM = { themes: LT.themes.length, sources: SOURCES.length, exps: ME.exps.length, cards: MEMO.cards.length, aixNow: AX.now.length, aixIdeas: `${AXN} · ${AX.ideas.map(g => `${g.lbl} ${g.list.length}`).join(' · ')}`, gbwork: window.GBWORK ? `${GBWORK.offices.length}곳 · 번호 ${GBWORK.offices.reduce((n, o) => n + o.rows.length, 0)}줄` : '', latest: `${LT.items.length}건 · 보도 ${LT.items.filter(x => x.s === 'pr' || x.s === 'ex').length} · 사보 ${LT.items.filter(x => x.s === 'mag').length} · 영상 ${LT.items.filter(x => x.s === 'yt').length}` };
-  $$('[data-n]').forEach(el => { const k = el.dataset.n; el.textContent = k in NUM ? NUM[k] : (MEMO[k] || []).length; });
+  const NUM = { themes: LT.themes.length, sources: SOURCES.length, exps: ME.exps.length, cards: MEMO.cards.length };
+  $$('[data-n]').forEach(el => { el.textContent = NUM[el.dataset.n]; });
   $('#upd').textContent = `자료 기준일 ${UPDATED}.`;
 })();

@@ -841,3 +841,12 @@ summary:focus-visible{outline-offset:-3px}
   .gbtable td small{font-size:8pt}
   .gbmx td.gbn.all{color:#111}
 }
+
+.profile{margin:0}
+.profile dt{font-weight:700;margin:.8em 0 .2em}
+.profile dd{margin:0;line-height:1.7;color:var(--tx2)}
+#company .chapter>p,#company .profile{max-width:76ch}
+@media print{
+  .profile dt{break-after:avoid}
+  .profile dd,#company .chapter>p{font-size:10pt;line-height:1.5}
+}
