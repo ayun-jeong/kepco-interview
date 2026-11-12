@@ -32,10 +32,11 @@
   const AX = window.AIX || { now: [], ideas: [] };
   const AXN = (AX.ideas || []).reduce((n, g) => n + g.list.length, 0);
   const LT = window.LATEST || { themes: [], items: [] };
-  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장, 한전 AI 현황 ${AX.now.length}줄과 내 AI 아이디어 ${AXN}개(${AX.ideas.length}갈래), 2026.8 이후 최신 이슈 ${LT.items.length}건(★ 반복·중요 주제 ${LT.themes.filter(t => t.star).length}개 · 해명 ${LT.items.filter(x => x.s === 'ex').length}건). 8번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
+  const qaTypes = [['기출', Q.filter(q => !q.pred && !q.essay)], ['예상', Q.filter(q => q.pred)], ['자소서', Q.filter(q => q.essay)]];
+  $('#qaTotals').innerHTML = qaTypes.map(([label, qs]) => `<div><dt>${label}</dt><dd>${qs.length}</dd></div>`).join('');
   const TL = [
     { d: '2026-10-27', t: '필기 합격 발표', s: '발표일 포함 3일 안에 자소서·증빙 제출' },
-    { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자 · 원문과 꼬리질문은 2번 섹션' },
+    { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자 · 원문과 꼬리질문은 내 경험·자소서에서 확인' },
     { d: '2026-11-09', e: '2026-11-27', t: '면접 (직무 + 경험)', s: '하루 통합' },
     { d: '2026-12-03', t: '최종 합격 발표', s: '' },
     { d: '2027-01-18', t: '사무 입사', s: '수습 3개월' },
@@ -44,7 +45,7 @@
   const dday = s => Math.round((P(s) - TODAY) / 864e5);
   const fmt = s => { const d = P(s); return `${d.getMonth() + 1}/${d.getDate()}`; };
   $('#timeline').innerHTML = TL.map(x => { const end = x.e ? P(x.e) : P(x.d); const dd = dday(x.d); const cls = end < TODAY ? 'past' : (P(x.d) <= TODAY ? 'now' : ''); const lab = end < TODAY ? '지남' : P(x.d) <= TODAY ? '진행 중' : `D-${dd}`; return `<li class="${cls}"><div class="dt">${fmt(x.d)}${x.e ? ' ~ ' + fmt(x.e) : ''}</div><div class="tt">${x.t}</div>${x.s ? `<div class="ss">${x.s}</div>` : ''}<span class="dd">${lab}</span></li>`; }).join('');
-  (function alert() { const el = $('#alert'); const sub = dday('2026-10-29'), iv = dday('2026-11-09'), ivEnd = dday('2026-11-27'); if (sub >= 0) el.innerHTML = `<b>자소서·증빙 제출 D-${sub}</b> · 자소서 3문항이 경험면접 질문지다. 제출한 원문과 문장별 꼬리질문은 2번 “제출한 자소서”에. 면접에서는 자소서와 같은 단어·같은 숫자로.`; else if (iv > 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 시작 D-${iv}</b> · 질문·답변 모음의 S·A 질문부터 소리 내어 연습. 숫자 카드는 매일 한 바퀴.`; } else if (ivEnd >= 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 기간</b> · 수험표·신분증. 이름·학교는 말하지 않는다.`; } else { el.className = 'alert calm'; el.textContent = '면접 기간이 끝났다. 최종 발표 12월 3일.'; } })();
+  (function alert() { const el = $('#alert'); const sub = dday('2026-10-29'), iv = dday('2026-11-09'), ivEnd = dday('2026-11-27'); if (sub >= 0) el.innerHTML = `<b>자소서·증빙 제출 D-${sub}</b> · 자소서 3문항이 경험면접 질문지다. 제출한 원문과 문장별 꼬리질문은 “내 경험·자소서”에. 면접에서는 자소서와 같은 단어·같은 숫자로.`; else if (iv > 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 시작 D-${iv}</b> · 질문·답변의 빈출 질문부터 소리 내어 연습. 숫자 카드는 매일 한 바퀴.`; } else if (ivEnd >= 0) { el.className = 'alert calm'; el.innerHTML = `<b>면접 기간</b> · 수험표·신분증. 이름·학교는 말하지 않는다.`; } else { el.className = 'alert calm'; el.textContent = '면접 기간이 끝났다. 최종 발표 12월 3일.'; } })();
 
   /* ───── 내 경험 ───── */
   $('#intro30').textContent = ME.intro30; $('#intro60').textContent = ME.intro60; $('#spec').textContent = ME.spec.join(' · ');
@@ -68,7 +69,8 @@
   })();
 
   /* ───── 이슈 암기 ───── */
-  const memoRow = x => `<div class="mrow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span></div><div class="mf">${esc(x.f)}</div>${x.a ? `<div class="ma"><b>답변</b>${esc(x.a)}</div>` : ''}${x.e && EXP.has(x.e) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${x.e}">${esc(EXP.get(x.e).t)}</a> · ${esc(EXP.get(x.e).n)}</div>` : ''}${lines(2, 'mlines')}</div>`;
+  const sourceLink = ([title, url]) => `<a class="source-link" href="${esc(url)}" target="_blank" rel="noopener">${esc(title)} ↗</a>`;
+  const memoRow = x => `<div class="mrow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span></div><div class="mf">${esc(x.f)}</div>${x.a ? `<div class="ma"><b>답변</b>${esc(x.a)}</div>` : ''}${x.e && EXP.has(x.e) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${x.e}">${esc(EXP.get(x.e).t)}</a> · ${esc(EXP.get(x.e).n)}</div>` : ''}${x.ref ? `<div class="mex">${sourceLink(x.ref)}</div>` : ''}${lines(2, 'mlines')}</div>`;
   $('#memoBasics').innerHTML = MEMO.basics.map(memoRow).join('');
   $('#memoDoing').innerHTML = MEMO.doing.map(memoRow).join('');
   $('#memoNews').innerHTML = MEMO.news.map(memoRow).join('');
@@ -88,27 +90,35 @@
     const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
     const me = k => k && EXP.has(k) ? `<p class="lme"><b>내 경험</b><a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a> · ${esc(EXP.get(k).n)}</p>` : '';
     const of = k => items.filter(x => x.th === k);
-    const tally = list => { const c = { pr: 0, mag: 0, yt: 0 }; list.forEach(x => { c[x.s === 'ex' ? 'pr' : x.s]++; }); return [['보도', c.pr], ['사보', c.mag], ['영상', c.yt]].filter(z => z[1]).map(z => z.join(' ')).join(' · '); };
     const isStar = x => TH.get(x.th).star || x.s === 'ex';
-    const tag = x => { const t = TH.get(x.th); return t.star ? `${star} ${esc(short(t))}` : x.s === 'ex' ? `${star} 해명 · ${esc(short(t))}` : esc(short(t)); };
-    const star = '<i class="lstar" aria-label="반복·중요">★</i>';
-    const chip = x => `<a class="lsrc s-${x.s}" href="${url(x)}" target="_blank" rel="noopener" title="${esc(x.t)}">${md(x)} ${SL[x.s]}</a>`;
-    const STAR = L.themes.filter(t => t.star), REST = L.themes.filter(t => !t.star), EX = items.filter(x => x.s === 'ex');
-    const card = t => { const list = of(t.k); return `<article class="ccard lcard" id="lt-${t.k}"><span class="lbl">${star} 반복·중요 · ${list.length}번 · ${tally(list)}</span><h4>${esc(t.t)}</h4><p class="lwhy">${esc(t.why)}</p><p>${esc(t.f)}</p><p class="ln"><b>외울 숫자</b>${esc(t.n)}</p><p class="la"><b>답변</b>${esc(t.a)}</p>${me(t.e)}<div class="lchips">${list.map(chip).join('')}</div><div class="jdq lq">${ql(t.ids)}</div></article>`; };
-    const rest = t => { const list = of(t.k); return `<div class="mrow lrest"><div class="mt"><b>${esc(t.t)}</b><span class="mn">${list.length}번 · ${tally(list)}</span></div><div class="mf">${esc(t.f)}</div><div class="mex jdq">${ql(t.ids)}</div></div>`; };
+    const tag = x => esc(short(TH.get(x.th)));
+    const EX = items.filter(x => x.s === 'ex');
+    const topic = (t, index) => {
+      const list = of(t.k);
+      const representative = list.find(x => (x.no || x.p || x.v) === t.source) || list[0];
+      const citation = x => sourceLink([`${md(x)} ${SL[x.s]} · ${x.t}`, url(x)]);
+      return `<details class="topic" id="lt-${t.k}" ${index === 0 ? 'open' : ''}>
+        <summary><span>${esc(t.t)}</span><span class="topic-count">${list.length}건</span></summary>
+        <div class="topic-text"><dl><dt>어떤 이슈인가요?</dt><dd>${esc(t.f)}</dd><dt>왜 중요한가요?</dt><dd>${esc(t.why)}</dd></dl>
+        <div class="issue-answer"><b>면접 답변 예시</b><p>${esc(t.a)}</p></div>
+        ${representative ? `<p class="topic-source">${citation(representative)}</p>` : ''}
+        <details class="topic-extra screenonly"><summary>관련 질문과 자료</summary>${me(t.e)}
+          <div class="jdq">${ql(t.ids)}</div><p class="mn">${esc(t.n)}</p><ul>${list.map(x => `<li>${citation(x)}</li>`).join('')}</ul>
+        </details></div></details>`;
+    };
     const exRow = x => `<li><span class="ld">${md(x)}</span><div><a href="${url(x)}" target="_blank" rel="noopener">${esc(x.t)}</a><p>${esc(x.r || x.f)}</p></div></li>`;
     const FILT = [['all', '전체', () => true], ['star', '★ 반복·중요', isStar], ['pr', '보도', x => x.s === 'pr'], ['ex', '해명', x => x.s === 'ex'], ['mag', '사보', x => x.s === 'mag'], ['yt', '영상', x => x.s === 'yt']];
     const months = [...new Set(items.map(x => x.d.slice(0, 7)))];
     const row = x => `<li class="lrow${isStar(x) ? ' st' : ''}"><span class="ld">${md(x)}</span><span class="lb s-${x.s}">${SL[x.s]}</span><div class="lbody"><a class="lt" href="${url(x)}" target="_blank" rel="noopener">${esc(x.t)}</a><span class="lth">${tag(x)}</span><p>${esc(x.f)}</p></div></li>`;
     const list = f => { const fn = FILT.find(z => z[0] === f)[2]; return months.map(m => { const xs = items.filter(x => x.d.slice(0, 7) === m && fn(x)); return xs.length ? `<h5 class="lmonth">${+m.slice(5, 7)}월 <small>${xs.length}건</small></h5><ol class="llist">${xs.map(row).join('')}</ol>` : ''; }).join(''); };
-    const n = s => items.filter(x => x.s === s).length;
-    el.innerHTML = `<p class="subp">${esc(L.intro)}</p>`
-      + `<div class="lgrid">${STAR.map(card).join('')}`
-      + `<article class="ccard lcard" id="lt-ex"><span class="lbl">${star} 반복·중요 · 해명 ${EX.length}건</span><h4>언론 지적과 한전 해명</h4><p class="lwhy">3개월 반 동안 보도설명·입장이 ${EX.length}번 나왔다. “최근 한전 관련 부정적 기사”를 물으면 지적 → 한전이 댄 숫자 → 내가 할 일 순서로 답한다. 자세한 설명은 날짜순 목록의 ‘해명’.</p><ol class="lexl">${EX.map(exRow).join('')}</ol><p class="la"><b>답변</b>지적받은 사실은 먼저 인정하고, 한전이 숫자로 설명한 내용을 덧붙인 뒤, 고객에게 정확히 안내하는 것이 지사 사무직의 몫이라고 답합니다.</p></article></div>`
-      + `<h4 class="ideah">그 밖에 되풀이된 것 ${REST.length} · 건수는 많아도 사무 답변에 덜 쓰는 주제</h4><div class="memo">${REST.map(rest).join('')}</div>`
-      + `<details class="lfold screenonly"><summary>날짜순 전체 ${items.length}건 펼치기 · 보도 ${n('pr')} · 해명 ${n('ex')} · 사보 ${n('mag')} · 영상 ${n('yt')}</summary><div class="chips lfilter">${FILT.map(([k, t, fn], i) => `<button class="chip${i ? '' : ' on'}" type="button" data-lf="${k}">${t} ${items.filter(fn).length}</button>`).join('')}</div><div id="latestList">${list('all')}</div></details>`
-      + `<div class="printonly"><h4 class="ideah">날짜순 전체 ${items.length}건 · ★ = 반복·중요 주제</h4><ol class="lprint">${items.map(x => `<li><b>${md(x)} ${SL[x.s]}</b> ${isStar(x) ? '★ ' : ''}${esc(x.t)}</li>`).join('')}</ol></div>`;
-    el.addEventListener('click', e => { const b = e.target.closest('[data-lf]'); if (!b) return; $$('[data-lf]', el).forEach(z => z.classList.toggle('on', z === b)); $('#latestList').innerHTML = list(b.dataset.lf); });
+    el.innerHTML = `<p class="topic-period">한전 보도·설명자료, 사보, 공식 영상 · ${esc(L.range)}</p>
+      <div class="topic-list">${L.themes.map(topic).join('')}</div>
+      <details id="lt-ex" class="chapter archive"><summary>언론 보도에 대한 한전의 설명 · ${EX.length}건</summary>
+        <p class="subp">기사에서 제기한 쟁점과 한전이 밝힌 입장을 함께 읽어 보세요.</p><ol class="lexl">${EX.map(exRow).join('')}</ol></details>
+      <details class="chapter archive screenonly"><summary>날짜순 원문 목록 · ${items.length}건</summary>
+        <div class="chips lfilter">${FILT.map(([k, t], i) => `<button class="chip${i ? '' : ' on'}" aria-pressed="${!i}" type="button" data-lf="${k}">${t}</button>`).join('')}</div>
+        <div id="latestList">${list('all')}</div></details>`;
+    el.addEventListener('click', e => { const b = e.target.closest('[data-lf]'); if (!b) return; $$('[data-lf]', el).forEach(z => { z.classList.toggle('on', z === b); z.setAttribute('aria-pressed', z === b); }); $('#latestList').innerHTML = list(b.dataset.lf); });
   })();
 
   $('#cardList').innerHTML = MEMO.cards.map(([q, a]) => `<li><b>${esc(q)}</b><span>${esc(a)}</span></li>`).join('');
@@ -129,20 +139,29 @@
     $('#fcKnow').addEventListener('click', () => { const c = deck[pos]; if (!c) return; known.add(c.id); save(); if ($('#fcSkip').checked) { deck.splice(pos, 1); if (pos >= deck.length) pos = deck.length; } else pos = Math.min(pos + 1, deck.length); show(); });
     $('#fcReset').addEventListener('click', () => { known = new Set(); save(); rebuild(); });
     $('#fcSkip').addEventListener('change', rebuild);
-    prog();
+    rebuild();
   })();
 
   /* ───── 질문 카드 ───── */
   const srcBadge = k => { const s = S.get(k); if (!s) return ''; const cls = s.type === '공채' ? 'g' : s.type === '인턴' ? 'i' : 'c'; return `<a class="src ${cls}" href="${s.url}" target="_blank" rel="noopener">${esc(s.yr)} ${esc(s.type)}</a>`; };
-  function answerBody(a) {
-    if (!a.s) return '<p class="empty">답변 없음</p>';
-    return `<div class="ans4"><div class="say"><b>말할 답변</b><p>${esc(meText(a.s))}</p></div><div class="two"><div class="kk"><b>한전 연결</b><p>${esc(meText(a.k))}</p></div><div class="ee"><b>내 경험</b><p>${expLink(a.e)}</p></div></div>${a.f ? `<div class="ff"><b>꼬리질문 대비</b><p>${expLink(meText(a.f))}</p></div>` : ''}</div>`;
+  function answerBody(a, compact = false) {
+    if (!a.s) return '<p class="empty">준비 중인 답변입니다.</p>';
+    const references = (a.refs || []).map(sourceLink).join(' ');
+    const extras = `<div class="two"><div class="kk"><b>한전 업무와 연결</b><p>${esc(meText(a.k))}</p>${references}</div>
+      <div class="ee"><b>연결할 경험</b><p>${expLink(a.e)}</p></div></div>
+      ${a.f ? `<div class="ff"><b>꼬리질문 대비</b><p>${expLink(meText(a.f))}</p></div>` : ''}`;
+    return `<div class="ans4"><div class="say"><b>답변 예시</b><p>${esc(meText(a.s))}</p></div>
+      ${compact ? `<details class="answer-extra"><summary>꼬리질문과 답변 근거</summary>${extras}</details>` : extras}</div>`;
   }
-  const metaOf = q => (q.essay ? '자소서 기반' : q.pred ? '기출 없음 · 예상' : `${q.iv} · 후기 ${q.n}곳`) + (q.rec && q.rec.length ? ` · 2025 하반기 이후 ${q.rec.length}곳` : '') + (q.star ? ` · ${q.star}` : '');
-  function card(q, prefix) {
-    const g = grade(q); const a = A[q.id] || {};
-    const raw = (q.v && q.v.length) ? `<details class="raw"><summary>실제 질문 문장 ${q.v.length}개 · 정의 · 참고</summary><ul class="vlist">${q.v.map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('')}</ul>${q.def ? `<div class="defbox"><b>정의</b>${esc(q.def)}</div>` : ''}${q.tip ? `<div class="tipbox">${esc(q.tip)}</div>` : ''}</details>` : (q.tip || q.basis ? `<details class="raw"><summary>참고</summary>${q.basis ? `<div class="defbox"><b>예상 근거</b>${esc(q.basis)}</div>` : ''}${q.tip ? `<div class="tipbox">${esc(q.tip)}</div>` : ''}</details>` : '');
-    return `<details class="qa" id="${prefix || 'q'}-${q.id}"><summary><i class="t ${gcls(g)}">${g}</i><span class="qt"><em class="qno">Q${q.no}</em>${esc(q.q)}</span><span class="qm">${metaOf(q)} · ${esc(q.cat)}</span></summary><div class="qa-body">${answerBody(a)}${raw}</div></details>`;
+  const metaOf = q => q.essay ? '제출한 자소서' : q.pred ? '예상 질문' : `후기 ${q.n}곳`;
+  function card(q, prefix = 'q') {
+    const notes = [[q.def, '개념'], [q.basis, '예상 근거'], [q.fix, '대응 방법'], [q.link, '한전과 연결'], [q.tip, '연습 메모']].filter(([v]) => v);
+    const variants = (q.v || []).map(([k, t]) => `<li>${srcBadge(k)}<span>${esc(t)}</span></li>`).join('');
+    const raw = variants || notes.length ? `<details class="raw"><summary>${variants ? '실제 질문 문장과 출처' : '질문 배경과 참고 자료'}</summary>
+      <ul class="vlist">${variants}</ul>${notes.map(([v, label]) => `<div class="defbox"><b>${label}</b>${esc(v)}</div>`).join('')}</details>` : '';
+    return `<details class="qa" id="${prefix}-${q.id}"><summary><span class="qno">Q${String(q.no).padStart(2, '0')}</span>
+      <span class="qt">${esc(q.q)}</span><span class="qm">${esc(q.cat)} · ${metaOf(q)}</span></summary>
+      <div class="qa-body">${answerBody(A[q.id] || {}, true)}${raw}</div></details>`;
   }
   /* 인쇄용: 접히지 않는 블록 */
   function printItem(q) {
@@ -152,24 +171,50 @@
     const refs = ref.length ? `<div class="pref">${ref.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : '';
     return `<article class="pitem"><div class="phead"><span class="pno">Q${q.no}</span><i class="t ${gcls(g)}">${g}</i><h4>${esc(q.q)}</h4><span class="pm">${metaOf(q)} · ${esc(q.cat)}</span></div>${def}${answerBody(a)}${refs}<div class="pwrite"><b>내 답변 메모</b>${lines(10)}</div></article>`;
   }
-  const state = { group: '전체', q: '' };
-  const GROUPS = ['전체', '2025 하반기 이후', '경험·공통', '직무', '시사·경북', '자소서'];
-  const inGroup = (q, g) => g === '전체' || (g === '2025 하반기 이후' ? q.rec.length > 0 : q.group === g);
-  $('#qaChips').innerHTML = GROUPS.map(g => `<button class="chip${g === '전체' ? ' on' : ''}" data-g="${g}">${g} ${Q.filter(q => inGroup(q, g)).length}</button>`).join('');
-  function renderQa() {
-    const kw = state.q.trim().toLowerCase();
-    const list = Q.filter(q => inGroup(q, state.group))
-      .filter(q => !kw || [q.q, q.cat, ...(q.v || []).map(v => v[1]), (A[q.id] || {}).s, (A[q.id] || {}).k, (A[q.id] || {}).e, (A[q.id] || {}).f, 'q' + q.no].join(' ').toLowerCase().includes(kw))
-      .sort(state.group === '2025 하반기 이후' ? ((a, b) => b.rec.length - a.rec.length || a.no - b.no) : SORT);
-    $('#qaList').innerHTML = list.map(q => card(q)).join('') || '<p class="empty">결과 없음</p>';
-    $('#qaCount').textContent = `${list.length}개`;
+  const state = { group: '전체', q: '', page: 0 };
+  const pageSize = 12;
+  const frequent = q => !q.pred && !q.essay && q.n >= 5;
+  const groups = ['전체', '빈출', '최근 기출', '경험·공통', '직무', '시사·경북', '자소서'];
+  const inGroup = (q, g) => g === '전체' || (g === '빈출' ? frequent(q) : g === '최근 기출' ? q.rec.length > 0 : q.group === g);
+  const searchIndex = new Map(Q.map(q => {
+    const a = A[q.id] || {};
+    return [q.id, [q.q, q.cat, ...q.v.map(v => v[1]), meText(a.s), a.k, a.e, a.f].join(' ').toLowerCase()];
+  }));
+  function matches() {
+    const term = state.q.trim().toLowerCase();
+    const no = /^q\s*0*(\d+)$/.exec(term);
+    return Q.filter(q => inGroup(q, state.group) && (no ? q.no === Number(no[1]) : searchIndex.get(q.id).includes(term)))
+      .sort(state.group === '최근 기출' ? (a, b) => b.rec.length - a.rec.length || a.no - b.no : SORT);
   }
+  $('#qaChips').innerHTML = groups.map(g => `<button type="button" class="chip" data-g="${g}"${g === '빈출' ? ' title="서로 다른 후기 5곳 이상에 나온 질문"' : ''}>${g}</button>`).join('');
+  function renderQa() {
+    const list = matches();
+    const pages = Math.ceil(list.length / pageSize);
+    state.page = Math.min(state.page, Math.max(0, pages - 1));
+    const start = state.page * pageSize;
+    $('#qaList').innerHTML = list.slice(start, start + pageSize).map(q => card(q)).join('') ||
+      '<div class="empty"><b>일치하는 질문이 없습니다.</b><p>다른 단어를 입력하거나 분류를 바꿔 보세요.</p><button type="button" class="btn ghost sm" id="clearQuery">검색 초기화</button></div>';
+    $('#qaCount').textContent = `${state.group === '빈출' ? '후기 5곳 이상 · ' : ''}질문 ${list.length}개${pages > 1 ? ` · ${start + 1}–${Math.min(start + pageSize, list.length)}번째` : ''}`;
+    $('#printResults').disabled = !list.length;
+    $('#qaPages').innerHTML = pages > 1 ? `<button type="button" data-step="-1" ${!state.page ? 'disabled' : ''}>← 이전</button><span>${state.page + 1} / ${pages}</span><button type="button" data-step="1" ${state.page === pages - 1 ? 'disabled' : ''}>다음 →</button>` : '';
+    $$('#qaChips .chip').forEach(b => { b.classList.toggle('on', b.dataset.g === state.group); b.setAttribute('aria-pressed', b.dataset.g === state.group); });
+  }
+  $('#qaChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-g]'); if (!b) return;
+    state.group = b.dataset.g; state.page = 0; renderQa();
+  });
+  $('#qaq').addEventListener('input', e => { state.q = e.target.value; state.page = 0; renderQa(); });
+  $('#qaList').addEventListener('click', e => {
+    if (e.target.id !== 'clearQuery') return;
+    state.group = '전체'; state.q = $('#qaq').value = ''; state.page = 0; renderQa(); $('#qaq').focus();
+  });
+  $('#qaPages').addEventListener('click', e => {
+    const b = e.target.closest('[data-step]'); if (!b) return;
+    state.page += Number(b.dataset.step); renderQa(); $('#qaList summary').focus();
+  });
   renderQa();
-  $('#qaChips').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; state.group = b.dataset.g; $$('#qaChips .chip').forEach(c => c.classList.toggle('on', c === b)); renderQa(); });
-  let t; $('#qaq').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { state.q = e.target.value; renderQa(); }, 120); });
-
   const RECENT_Q = Q.filter(q => q.rec.length).sort((a, b) => b.rec.length - a.rec.length || a.no - b.no);
-  $('#recentNote').textContent = `최근 후기에서 나온 질문 ${RECENT_Q.length}개 중 많이 나온 30개. 나머지는 5번 질문 모음의 “2025 하반기 이후” 칩에서 본다.`;
+  $('#recentNote').textContent = `최근 후기에서 나온 질문 ${RECENT_Q.length}개 중 많이 나온 30개. 전체 목록은 질문·답변에서 ‘최근 기출’을 선택하면 볼 수 있습니다.`;
   $('#recentList').innerHTML = RECENT_Q.slice(0, 30).map(q => `<li><a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q)}</a><small>${q.rec.length}곳 · ${[...new Set(q.rec.map(srcLabel))].join(', ')}</small></li>`).join('');
 
   /* ───── 직무기술서 ───── */
@@ -193,9 +238,15 @@
     const QB = new Map(Q.map(q => [q.id, q]));
     const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
     const exp = k => k && EXP.has(k) ? `<div class="mex"><b>내 경험</b><a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a> · ${esc(EXP.get(k).n)}</div>` : '';
-    elN.innerHTML = `<p class="subp">${esc(X.intro)}</p><div class="memo">` + X.now.map(x => `<div class="mrow arow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span><small class="aw">${esc(x.w)}</small></div><div class="mf">${esc(x.f)}</div><div class="ma"><b>사무직</b>${expLink(x.a)}</div>${exp(x.e)}<div class="mex aq jdq">${ql(x.ids)}</div>${lines(2, 'mlines')}</div>`).join('') + `</div>`;
-    const idea = pfx => (x, i) => `<div class="ccard idea"><span class="lbl">${pfx} ${i + 1}</span><h4>${esc(x.t)}</h4><p><b>불편</b>${esc(x.p)}</p><p><b>어떻게</b>${esc(x.h)}</p><p><b>한전 위에</b>${esc(x.l)}</p><p><b>내 경험</b>${expLink(x.e)}</p><p><b>꼬리</b>${esc(x.f)}</p></div>`;
+    const inventory = X.inventory.map(g =>
+      `<h4 class="ideah">${esc(g.status)} · ${g.cases.length}건</h4><div class="memo">` +
+      g.cases.map(c => `<div class="mrow"><div class="mt"><b>${esc(c.t)}</b><small class="aw">자료 ${c.page}쪽</small></div><div class="mf">${esc(c.f)}</div></div>`).join('') + '</div>'
+    ).join('');
+    elN.innerHTML = `<p class="subp">${esc(X.intro)}</p>${inventory}<h4 class="ideah">보도자료·사보로 보는 사업 경과와 사무직 업무</h4><div class="memo">` + X.now.map(x => `<div class="mrow arow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span><small class="aw">${esc(x.w)}</small></div><div class="mf">${esc(x.f)}</div><div class="ma"><b>사무직</b>${expLink(x.a)}</div>${exp(x.e)}<div class="mex aq jdq">${ql(x.ids)}</div>${lines(2, 'mlines')}</div>`).join('') + `</div>`;
+    const idea = pfx => (x, i) => `<div class="ccard idea"${x.id ? ` id="idea-${esc(x.id)}"` : ''}><span class="lbl">${pfx} ${i + 1}</span><h4>${esc(x.t)}</h4><p><b>불편</b>${esc(x.p)}</p><p><b>어떻게</b>${esc(x.h)}</p><p><b>한전 업무</b>${esc(x.l)}</p><p><b>내 경험</b>${expLink(x.e)}</p><p><b>꼬리</b>${esc(x.f)}</p></div>`;
     elI.innerHTML = `<p class="subp">${esc(X.frame)}</p>`
+      + '<h4 class="ideah">다른 공기업 사례의 한전 적용 가능성 · 2026.6.30 자료</h4><div class="memo">'
+      + X.peers.map(p => `<div class="mrow"><div class="mt"><b>${p.idea ? `<a href="#idea-${esc(p.idea)}">${esc(p.t)}</a>` : esc(p.t)}</b></div><div class="mf">${esc(p.f)}</div></div>`).join('') + '</div>'
       + `<p class="ideanav">${X.ideas.map((g, i) => `<a href="#idea-${g.k}">${i + 1}. ${esc(g.t)} ${g.list.length}</a>`).join('')}</p>`
       + X.ideas.map((g, i) => `<h4 class="ideah" id="idea-${g.k}">${i + 1}. ${esc(g.t)} ${g.list.length} · ${esc(g.sub)}</h4><div class="ideas">${g.list.map(idea(g.lbl)).join('')}</div>`).join('')
       + `<div class="ccard aicav"><span class="lbl">AI를 말할 때 같이 준비할 것 ${X.caveats.length}</span><ul class="plain">${X.caveats.map(([t, u]) => `<li><b>${esc(t)}</b> ${expLink(u)}</li>`).join('')}</ul></div>`;
@@ -205,7 +256,7 @@
   $('#gb30').textContent = ME.gbMotive30; $('#gb60').textContent = ME.gbMotive60;
   const GBQ = ['p_why', 'relocate', 'p_local', 'p_elder', 'merge'].map(id => Q.find(q => q.id === id)).filter(Boolean);
   $('#gbQa').innerHTML = GBQ.filter(q => q.id !== 'p_why').map(q => card(q, 'gbq')).join('');
-  $('#gbNote').textContent = `경북 관련 질문은 5번 질문 모음에 답변과 함께 있다: ${GBQ.map(q => `Q${q.no} ${q.q}`).join(' / ')}`;
+  $('#gbNote').textContent = `경북 관련 질문은 질문·답변에서 확인하세요. ${GBQ.map(q => `Q${q.no} ${q.q}`).join(' / ')}`;
 
   /* ───── 경북본부·지사가 하는 일 (업무별 전화번호) ───── */
   (function gbwork() {
@@ -234,14 +285,15 @@
   /* ───── 연습 ───── */
   (function practice() {
     let cur = null, timer = null, left = 60, total = 60;
-    const pools = { sa: () => Q.filter(q => !q.pred && !q.essay && q.n >= 5), e: () => Q.filter(q => q.group === '경험·공통' || q.essay), j: () => Q.filter(q => q.group === '직무'), p: () => Q.filter(q => q.pred), all: () => Q };
+    const pools = { sa: () => Q.filter(frequent), e: () => Q.filter(q => q.group === '경험·공통' || q.essay), j: () => Q.filter(q => q.group === '직무'), p: () => Q.filter(q => q.pred), all: () => Q };
     const reset = () => { total = left = +$('#sec').value; $('#ptime').textContent = left; $('#pbar').style.width = '100%'; $('#pbar').classList.remove('warn'); };
     const stop = () => { clearInterval(timer); timer = null; $('#pstart').textContent = '타이머 시작'; };
     const pick = () => { const pool = pools[$('#pool').value](); if (!pool.length) return; let q; do { q = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && cur && q.id === cur.id); cur = q; $('#pq').textContent = `Q${q.no}. ${q.q}`; $('#pmeta').innerHTML = `<span>${esc(q.cat)}</span>${q.pred ? '<span>예상</span>' : q.essay ? '<span>자소서</span>' : `<span>후기 ${q.n}곳</span>`}`; $('#ptipbox').hidden = true; stop(); reset(); };
     $('#pnext').addEventListener('click', pick);
-    $('#pstart').addEventListener('click', () => { if (!cur) pick(); if (timer) { stop(); return; } $('#pstart').textContent = '멈춤'; timer = setInterval(() => { left--; $('#ptime').textContent = Math.max(0, left); $('#pbar').style.width = (left / total * 100) + '%'; if (left <= 10) $('#pbar').classList.add('warn'); if (left <= 0) { stop(); $('#ptime').textContent = '끝'; } }, 1000); });
+    $('#pool').addEventListener('change', pick);
+    $('#pstart').addEventListener('click', () => { if (!cur) pick(); if (left <= 0) reset(); if (timer) { stop(); return; } $('#pstart').textContent = '멈춤'; timer = setInterval(() => { left--; $('#ptime').textContent = Math.max(0, left); $('#pbar').style.width = (left / total * 100) + '%'; if (left <= 10) $('#pbar').classList.add('warn'); if (left <= 0) { stop(); $('#ptime').textContent = '끝'; } }, 1000); });
     $('#sec').addEventListener('change', () => { stop(); reset(); });
-    $('#ptip').addEventListener('click', () => { if (!cur) return; const b = $('#ptipbox'); b.hidden = !b.hidden; if (b.hidden) return; const a = A[cur.id] || {}; b.innerHTML = a.s ? `${answerBody(a)}<a href="#q-${cur.id}">Q${cur.no} 카드로 가기</a>` : '답변 없음'; });
+    $('#ptip').addEventListener('click', () => { if (!cur) pick(); const b = $('#ptipbox'); b.hidden = !b.hidden; if (b.hidden) return; const a = A[cur.id] || {}; b.innerHTML = a.s ? `${answerBody(a)}<a href="#q-${cur.id}">Q${cur.no} 카드로 가기</a>` : '답변 없음'; });
     reset();
   })();
 
@@ -251,7 +303,7 @@
     const order = { '공채': 0, '모음': 1, '인턴': 2, '계약직': 3, '기타': 4 };
     const rows = [...SOURCES].sort((a, b) => order[a.type] - order[b.type] || (parseInt(b.yr) || 0) - (parseInt(a.yr) || 0));
     $('#srctable').innerHTML = `<thead><tr><th>시기</th><th>전형</th><th>출처</th><th class="n">유형</th></tr></thead><tbody>${rows.map(s => `<tr><td>${esc(s.yr)}</td><td>${esc(s.type)}</td><td><a href="${s.url}" target="_blank" rel="noopener">${esc(s.site)} · ${esc(s.title)}</a></td><td class="n">${cnt[s.k] || 0}</td></tr>`).join('')}</tbody>`;
-    $('#refs').innerHTML = (window.REFS || []).map(r => `<li><a href="${r.url}" target="_blank" rel="noopener">${esc(r.t)}</a></li>`).join('');
+    $('#refs').innerHTML = (window.REFS || []).map(r => `<li>${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.t)}</a>` : esc(r.t)}</li>`).join('');
   })();
 
   /* ───── 인쇄 ───── */
@@ -302,7 +354,7 @@
     apply();
   })();
 
-  const NUM = { exps: ME.exps.length, cards: MEMO.cards.length, aixNow: AX.now.length, aixIdeas: `${AXN} · ${AX.ideas.map(g => `${g.lbl} ${g.list.length}`).join(' · ')}`, gbwork: window.GBWORK ? `${GBWORK.offices.length}곳 · 번호 ${GBWORK.offices.reduce((n, o) => n + o.rows.length, 0)}줄` : '', latest: `${LT.items.length}건 · 보도 ${LT.items.filter(x => x.s === 'pr' || x.s === 'ex').length} · 사보 ${LT.items.filter(x => x.s === 'mag').length} · 영상 ${LT.items.filter(x => x.s === 'yt').length}` };
+  const NUM = { themes: LT.themes.length, sources: SOURCES.length, exps: ME.exps.length, cards: MEMO.cards.length, aixNow: AX.now.length, aixIdeas: `${AXN} · ${AX.ideas.map(g => `${g.lbl} ${g.list.length}`).join(' · ')}`, gbwork: window.GBWORK ? `${GBWORK.offices.length}곳 · 번호 ${GBWORK.offices.reduce((n, o) => n + o.rows.length, 0)}줄` : '', latest: `${LT.items.length}건 · 보도 ${LT.items.filter(x => x.s === 'pr' || x.s === 'ex').length} · 사보 ${LT.items.filter(x => x.s === 'mag').length} · 영상 ${LT.items.filter(x => x.s === 'yt').length}` };
   $$('[data-n]').forEach(el => { const k = el.dataset.n; el.textContent = k in NUM ? NUM[k] : (MEMO[k] || []).length; });
   $('#upd').textContent = `자료 기준일 ${UPDATED}.`;
 })();
