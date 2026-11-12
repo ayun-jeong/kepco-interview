@@ -3,7 +3,7 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const UPDATED = '2026-10-30';
+  const UPDATED = '2026-11-12';
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
   const S = new Map(SOURCES.map(s => [s.k, s]));
   const CAT = new Map(CATS.map(c => [c.k, c]));
@@ -29,8 +29,10 @@
   const lines = (n, cls) => `<div class="lines${cls ? ' ' + cls : ''}" aria-hidden="true">${'<i></i>'.repeat(n)}</div>`;
 
   /* ───── 헤더 ───── */
-  const AX = window.AIX || { now: [], ideas: { internal: [], public: [] } };
-  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장, 한전 AI 현황 ${AX.now.length}줄과 내 AI 아이디어 ${AX.ideas.internal.length + AX.ideas.public.length}개. 8번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
+  const AX = window.AIX || { now: [], ideas: [] };
+  const AXN = (AX.ideas || []).reduce((n, g) => n + g.list.length, 0);
+  const LT = window.LATEST || { themes: [], items: [] };
+  $('#lead').textContent = `질문 ${Q.length}개(기출 ${Q.filter(q => !q.pred && !q.essay).length} · 예상 ${Q.filter(q => q.pred).length} · 자소서 꼬리 ${Q.filter(q => q.essay).length})마다 소리 내어 말할 답변, 한전 연결, 내 경험, 꼬리질문 대비를 달았다. 이슈는 한 곳에 ${MEMO.basics.length + MEMO.doing.length + MEMO.news.length}줄, 상식 사전 ${(MEMO.dict || []).length}줄, 한전 영상 정리 ${(MEMO.video || []).length + (MEMO.video2 || []).length}줄, 숫자 카드 ${MEMO.cards.length}장, 한전 AI 현황 ${AX.now.length}줄과 내 AI 아이디어 ${AXN}개(${AX.ideas.length}갈래), 2026.8 이후 최신 이슈 ${LT.items.length}건(★ 반복·중요 주제 ${LT.themes.filter(t => t.star).length}개 · 해명 ${LT.items.filter(x => x.s === 'ex').length}건). 8번에서 골라 인쇄하면 손으로 쓸 줄이 붙는다.`;
   const TL = [
     { d: '2026-10-27', t: '필기 합격 발표', s: '발표일 포함 3일 안에 자소서·증빙 제출' },
     { d: '2026-10-29', t: '자소서·증빙 제출 마감', s: '3문항 × 700자 · 원문과 꼬리질문은 2번 섹션' },
@@ -73,6 +75,42 @@
   $('#memoDict').innerHTML = (MEMO.dict || []).map(memoRow).join('');
   $('#memoVideo').innerHTML = (MEMO.video || []).map(memoRow).join('');
   $('#memoVideo2').innerHTML = (MEMO.video2 || []).map(memoRow).join('');
+  /* ───── 최신 이슈 · 2026.8 이후 ───── */
+  (function latest() {
+    const L = window.LATEST, el = $('#latestBlock'); if (!L || !el) return;
+    const QB = new Map(Q.map(q => [q.id, q]));
+    const SL = { pr: '보도', ex: '해명', mag: '사보', yt: '영상' };
+    const TH = new Map(L.themes.map(t => [t.k, t]));
+    const short = t => t.t.split(' · ')[0];
+    const items = [...L.items].sort((a, b) => b.d.localeCompare(a.d) || (b.no || 0) - (a.no || 0));
+    const url = x => x.s === 'yt' ? `https://www.youtube.com/watch?v=${x.v}` : x.s === 'mag' ? `https://www.kepco.co.kr/KEPCO_FILE/html/${x.p}.html` : `https://www.kepco.co.kr/home/media/newsroom/pr/boardView.do?boardMngNo=15&boardNo=${x.no}`;
+    const md = x => x.d.length === 7 ? `${+x.d.slice(5, 7)}월호` : `${+x.d.slice(5, 7)}.${+x.d.slice(8, 10)}`;
+    const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
+    const me = k => k && EXP.has(k) ? `<p class="lme"><b>내 경험</b><a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a> · ${esc(EXP.get(k).n)}</p>` : '';
+    const of = k => items.filter(x => x.th === k);
+    const tally = list => { const c = { pr: 0, mag: 0, yt: 0 }; list.forEach(x => { c[x.s === 'ex' ? 'pr' : x.s]++; }); return [['보도', c.pr], ['사보', c.mag], ['영상', c.yt]].filter(z => z[1]).map(z => z.join(' ')).join(' · '); };
+    const isStar = x => TH.get(x.th).star || x.s === 'ex';
+    const tag = x => { const t = TH.get(x.th); return t.star ? `${star} ${esc(short(t))}` : x.s === 'ex' ? `${star} 해명 · ${esc(short(t))}` : esc(short(t)); };
+    const star = '<i class="lstar" aria-label="반복·중요">★</i>';
+    const chip = x => `<a class="lsrc s-${x.s}" href="${url(x)}" target="_blank" rel="noopener" title="${esc(x.t)}">${md(x)} ${SL[x.s]}</a>`;
+    const STAR = L.themes.filter(t => t.star), REST = L.themes.filter(t => !t.star), EX = items.filter(x => x.s === 'ex');
+    const card = t => { const list = of(t.k); return `<article class="ccard lcard" id="lt-${t.k}"><span class="lbl">${star} 반복·중요 · ${list.length}번 · ${tally(list)}</span><h4>${esc(t.t)}</h4><p class="lwhy">${esc(t.why)}</p><p>${esc(t.f)}</p><p class="ln"><b>외울 숫자</b>${esc(t.n)}</p><p class="la"><b>답변</b>${esc(t.a)}</p>${me(t.e)}<div class="lchips">${list.map(chip).join('')}</div><div class="jdq lq">${ql(t.ids)}</div></article>`; };
+    const rest = t => { const list = of(t.k); return `<div class="mrow lrest"><div class="mt"><b>${esc(t.t)}</b><span class="mn">${list.length}번 · ${tally(list)}</span></div><div class="mf">${esc(t.f)}</div><div class="mex jdq">${ql(t.ids)}</div></div>`; };
+    const exRow = x => `<li><span class="ld">${md(x)}</span><div><a href="${url(x)}" target="_blank" rel="noopener">${esc(x.t)}</a><p>${esc(x.r || x.f)}</p></div></li>`;
+    const FILT = [['all', '전체', () => true], ['star', '★ 반복·중요', isStar], ['pr', '보도', x => x.s === 'pr'], ['ex', '해명', x => x.s === 'ex'], ['mag', '사보', x => x.s === 'mag'], ['yt', '영상', x => x.s === 'yt']];
+    const months = [...new Set(items.map(x => x.d.slice(0, 7)))];
+    const row = x => `<li class="lrow${isStar(x) ? ' st' : ''}"><span class="ld">${md(x)}</span><span class="lb s-${x.s}">${SL[x.s]}</span><div class="lbody"><a class="lt" href="${url(x)}" target="_blank" rel="noopener">${esc(x.t)}</a><span class="lth">${tag(x)}</span><p>${esc(x.f)}</p></div></li>`;
+    const list = f => { const fn = FILT.find(z => z[0] === f)[2]; return months.map(m => { const xs = items.filter(x => x.d.slice(0, 7) === m && fn(x)); return xs.length ? `<h5 class="lmonth">${+m.slice(5, 7)}월 <small>${xs.length}건</small></h5><ol class="llist">${xs.map(row).join('')}</ol>` : ''; }).join(''); };
+    const n = s => items.filter(x => x.s === s).length;
+    el.innerHTML = `<p class="subp">${esc(L.intro)}</p>`
+      + `<div class="lgrid">${STAR.map(card).join('')}`
+      + `<article class="ccard lcard" id="lt-ex"><span class="lbl">${star} 반복·중요 · 해명 ${EX.length}건</span><h4>언론 지적과 한전 해명</h4><p class="lwhy">3개월 반 동안 보도설명·입장이 ${EX.length}번 나왔다. “최근 한전 관련 부정적 기사”를 물으면 지적 → 한전이 댄 숫자 → 내가 할 일 순서로 답한다. 자세한 설명은 날짜순 목록의 ‘해명’.</p><ol class="lexl">${EX.map(exRow).join('')}</ol><p class="la"><b>답변</b>지적받은 사실은 먼저 인정하고, 한전이 숫자로 설명한 내용을 덧붙인 뒤, 고객에게 정확히 안내하는 것이 지사 사무직의 몫이라고 답합니다.</p></article></div>`
+      + `<h4 class="ideah">그 밖에 되풀이된 것 ${REST.length} · 건수는 많아도 사무 답변에 덜 쓰는 주제</h4><div class="memo">${REST.map(rest).join('')}</div>`
+      + `<details class="lfold screenonly"><summary>날짜순 전체 ${items.length}건 펼치기 · 보도 ${n('pr')} · 해명 ${n('ex')} · 사보 ${n('mag')} · 영상 ${n('yt')}</summary><div class="chips lfilter">${FILT.map(([k, t, fn], i) => `<button class="chip${i ? '' : ' on'}" type="button" data-lf="${k}">${t} ${items.filter(fn).length}</button>`).join('')}</div><div id="latestList">${list('all')}</div></details>`
+      + `<div class="printonly"><h4 class="ideah">날짜순 전체 ${items.length}건 · ★ = 반복·중요 주제</h4><ol class="lprint">${items.map(x => `<li><b>${md(x)} ${SL[x.s]}</b> ${isStar(x) ? '★ ' : ''}${esc(x.t)}</li>`).join('')}</ol></div>`;
+    el.addEventListener('click', e => { const b = e.target.closest('[data-lf]'); if (!b) return; $$('[data-lf]', el).forEach(z => z.classList.toggle('on', z === b)); $('#latestList').innerHTML = list(b.dataset.lf); });
+  })();
+
   $('#cardList').innerHTML = MEMO.cards.map(([q, a]) => `<li><b>${esc(q)}</b><span>${esc(a)}</span></li>`).join('');
 
   (function cards() {
@@ -158,9 +196,9 @@
     elN.innerHTML = `<p class="subp">${esc(X.intro)}</p><div class="memo">` + X.now.map(x => `<div class="mrow arow"><div class="mt"><b>${esc(x.t)}</b><span class="mn">${esc(x.n)}</span><small class="aw">${esc(x.w)}</small></div><div class="mf">${esc(x.f)}</div><div class="ma"><b>사무직</b>${expLink(x.a)}</div>${exp(x.e)}<div class="mex aq jdq">${ql(x.ids)}</div>${lines(2, 'mlines')}</div>`).join('') + `</div>`;
     const idea = pfx => (x, i) => `<div class="ccard idea"><span class="lbl">${pfx} ${i + 1}</span><h4>${esc(x.t)}</h4><p><b>불편</b>${esc(x.p)}</p><p><b>어떻게</b>${esc(x.h)}</p><p><b>한전 위에</b>${esc(x.l)}</p><p><b>내 경험</b>${expLink(x.e)}</p><p><b>꼬리</b>${esc(x.f)}</p></div>`;
     elI.innerHTML = `<p class="subp">${esc(X.frame)}</p>`
-      + `<h4 class="ideah">안에서 효율 ${X.ideas.internal.length} · 지사 사무직의 시간을 줄이는 것</h4><div class="ideas">${X.ideas.internal.map(idea('안에서 효율')).join('')}</div>`
-      + `<h4 class="ideah">국민 편의 ${X.ideas.public.length} · 고객이 먼저 느끼는 것</h4><div class="ideas">${X.ideas.public.map(idea('국민 편의')).join('')}</div>`
-      + `<div class="ccard aicav"><span class="lbl">AI를 말할 때 같이 준비할 것 · 꼬리질문 6</span><ul class="plain">${X.caveats.map(([t, u]) => `<li><b>${esc(t)}</b> ${expLink(u)}</li>`).join('')}</ul></div>`;
+      + `<p class="ideanav">${X.ideas.map((g, i) => `<a href="#idea-${g.k}">${i + 1}. ${esc(g.t)} ${g.list.length}</a>`).join('')}</p>`
+      + X.ideas.map((g, i) => `<h4 class="ideah" id="idea-${g.k}">${i + 1}. ${esc(g.t)} ${g.list.length} · ${esc(g.sub)}</h4><div class="ideas">${g.list.map(idea(g.lbl)).join('')}</div>`).join('')
+      + `<div class="ccard aicav"><span class="lbl">AI를 말할 때 같이 준비할 것 ${X.caveats.length}</span><ul class="plain">${X.caveats.map(([t, u]) => `<li><b>${esc(t)}</b> ${expLink(u)}</li>`).join('')}</ul></div>`;
   })();
 
   /* ───── 경북 ───── */
@@ -210,6 +248,8 @@
     $('#prSecs').innerHTML = SECS.map(([k, t]) => `<label><input type="checkbox" data-sec="${k}"> ${t}</label>`).join('') + GL.map(g => `<label><input type="checkbox" data-grp="${g}"> 5. 질문 · ${g} <small>${cnt(g)}개</small></label>`).join('');
     const apply = () => {
       SECS.forEach(([k]) => $('#' + k).classList.toggle('noprint', !st.secs.includes(k)));
+      const first = SECS.map(s => s[0]).filter(k => st.secs.includes(k)).concat(st.groups.length ? ['qa'] : [])[0];
+      [...SECS.map(s => s[0]), 'qa'].forEach(k => $('#' + k).classList.toggle('pfirst', k === first));
       $$('#printQa .pgrp').forEach(el => el.classList.toggle('noprint', !st.groups.includes(el.dataset.g)));
       $('#qa').classList.toggle('noprint', !st.groups.length);
       document.body.classList.toggle('pm-blank', st.mode === 'blank');
@@ -238,7 +278,7 @@
     apply();
   })();
 
-  const NUM = { exps: ME.exps.length, cards: MEMO.cards.length, aixNow: AX.now.length, aixIdeas: `${AX.ideas.internal.length + AX.ideas.public.length} · 안에서 효율 ${AX.ideas.internal.length} · 국민 편의 ${AX.ideas.public.length}` };
+  const NUM = { exps: ME.exps.length, cards: MEMO.cards.length, aixNow: AX.now.length, aixIdeas: `${AXN} · ${AX.ideas.map(g => `${g.lbl} ${g.list.length}`).join(' · ')}`, latest: `${LT.items.length}건 · 보도 ${LT.items.filter(x => x.s === 'pr' || x.s === 'ex').length} · 사보 ${LT.items.filter(x => x.s === 'mag').length} · 영상 ${LT.items.filter(x => x.s === 'yt').length}` };
   $$('[data-n]').forEach(el => { const k = el.dataset.n; el.textContent = k in NUM ? NUM[k] : (MEMO[k] || []).length; });
   $('#upd').textContent = `자료 기준일 ${UPDATED}.`;
 })();

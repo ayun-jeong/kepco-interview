@@ -303,7 +303,7 @@ footer p+p{margin-top:8px}
   body{background:#fff;color:#000;font-size:10pt;line-height:1.5;-webkit-print-color-adjust:economy;print-color-adjust:economy}
   nav,#practice,#src,#print,#links,.alert,.timeline,header .lead,.fc,.ctrl,#qaList,#gbQa,.screenonly,.noprint{display:none!important}
   .printonly{display:block!important}
-  .wrap{max-width:none;padding:0}
+  .wrap{max-width:none;padding:0 .4mm}
   header{padding:0 0 3mm;border-bottom:2px solid #000;margin-bottom:4mm}
   header h1{font-size:15pt} header h1 br{display:none}
   .eyebrow{font-size:8.5pt}
@@ -479,3 +479,68 @@ mark.eh{background:var(--a-bg);color:inherit;border-radius:4px;padding:1px 3px;-
 }
 /* 자소서 꼬리질문 목록의 “같은 기출” 표시 */
 .jdq a small{font-size:10.5px;color:var(--tx3);margin-left:3px;font-weight:600}
+
+/* 최신 이슈 · 2026.8 이후 */
+.lgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:6px}
+.lcard h4{font-size:15.5px;margin:0 0 2px;line-height:1.45;color:var(--tx)}
+.lcard .lwhy{font-size:12.5px;color:var(--tx3);margin-top:4px}
+.lcard p b{display:inline-block;font-size:11px;letter-spacing:.05em;margin-right:6px;color:var(--e)}
+.lcard .ln{color:var(--tx);font-weight:700;font-variant-numeric:tabular-nums}
+.lcard .ln b{color:var(--j)}
+.lcard .lme b{color:var(--c)}
+.lstar{font-style:normal;color:var(--a)}
+.lchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}
+.lsrc{font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 8px;text-decoration:none;white-space:nowrap}
+.lsrc:hover{text-decoration:underline}
+.s-pr{color:var(--j);background:var(--j-bg)}
+.s-ex{color:var(--s);background:var(--s-bg)}
+.s-mag{color:var(--c);background:var(--c-bg)}
+.s-yt{color:var(--e);background:var(--e-bg)}
+.lcard .lq{margin-top:10px}
+.lexl{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.lexl li{display:grid;grid-template-columns:40px 1fr;gap:8px;align-items:baseline;padding-top:8px;border-top:1px solid var(--line)}
+.lexl li:first-child{border-top:0;padding-top:0}
+.lexl a{font-size:13.5px;font-weight:600;color:var(--tx);text-decoration:none;line-height:1.45}
+.lexl a:hover{text-decoration:underline}
+.lexl p{margin:2px 0 0;font-size:12.5px;line-height:1.5}
+.lexl .ld,.lrow .ld{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700;color:var(--tx3);font-size:12.5px}
+.lexl .ld{color:var(--s)}
+.lrest .mt .mn{color:var(--tx3)}
+.lfold{margin-top:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg2);padding:2px 16px 14px}
+.lfold summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
+.lfilter{margin:2px 0 4px}
+.lmonth{font-size:13px;color:var(--tx3);margin:16px 0 6px;letter-spacing:.03em}
+.lmonth small{font-weight:600;margin-left:4px;font-size:12px}
+.llist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.lrow{display:grid;grid-template-columns:50px 38px 1fr;gap:4px 10px;align-items:baseline;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.lrow.st{border-left:3px solid var(--a);padding-left:10px}
+.lrow .lb{font-size:11px;font-weight:700;border-radius:6px;padding:2px 0;text-align:center}
+.lrow .lt{font-weight:700;font-size:14px;color:var(--tx);text-decoration:none;line-height:1.45}
+.lrow .lt:hover{text-decoration:underline}
+.lrow .lth{display:inline-block;margin-left:8px;font-size:11.5px;color:var(--tx3);font-weight:600;white-space:nowrap}
+.lrow p{margin:3px 0 0;font-size:13px;color:var(--tx2);line-height:1.55}
+.ideanav{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
+.ideanav a{font-size:12.5px;font-weight:600;text-decoration:none;color:var(--tx2);border:1px solid var(--line2);border-radius:999px;padding:4px 10px;background:var(--bg2)}
+.ideanav a:hover{color:var(--tx);border-color:var(--tx3)}
+@media (max-width:760px){.lgrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.lrow{grid-template-columns:auto 1fr}.lrow .lbody{grid-column:1/-1}.lrow .lb{padding:2px 6px;justify-self:start}}
+@media print{
+  .lgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:2mm}
+  .lcard h4{font-size:10pt}
+  .lcard .lwhy{font-size:8pt;color:#333}
+  .lchips{display:none}
+  .lcard p{font-size:8.5pt;line-height:1.45;margin-top:1.2mm}
+  .pfirst{break-before:auto!important}
+  .lcard .lq{display:none}
+  .lstar{color:#000}
+  .lexl{gap:1mm;margin-top:1.5mm}
+  .lexl li{grid-template-columns:9mm 1fr;gap:1.5mm;padding-top:1mm}
+  .lexl a{font-size:8.5pt}
+  .lexl p{font-size:8pt}
+  .lexl .ld{color:#000}
+  .lprint{display:block;columns:2;column-gap:6mm;margin:0;padding-left:0;list-style:none;font-size:8pt;line-height:1.4}
+  .lprint li{break-inside:avoid;margin:0 0 .8mm}
+  .lprint b{font-variant-numeric:tabular-nums;margin-right:1mm}
+  .pm-blank .lcard .la{display:none}
+  .ideanav{display:none}
+}
