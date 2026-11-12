@@ -523,6 +523,7 @@ mark.eh{background:var(--a-bg);color:inherit;border-radius:4px;padding:1px 3px;-
 .ideanav a{font-size:12.5px;font-weight:600;text-decoration:none;color:var(--tx2);border:1px solid var(--line2);border-radius:999px;padding:4px 10px;background:var(--bg2)}
 .ideanav a:hover{color:var(--tx);border-color:var(--tx3)}
 @media (max-width:760px){.lgrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.gbmx td.gbt{min-width:150px}}
 @media (max-width:640px){.lrow{grid-template-columns:auto 1fr}.lrow .lbody{grid-column:1/-1}.lrow .lb{padding:2px 6px;justify-self:start}}
 @media print{
   .lgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:2mm}
@@ -543,4 +544,47 @@ mark.eh{background:var(--a-bg);color:inherit;border-radius:4px;padding:1px 3px;-
   .lprint b{font-variant-numeric:tabular-nums;margin-right:1mm}
   .pm-blank .lcard .la{display:none}
   .ideanav{display:none}
+}
+
+/* 경북본부·지사가 하는 일 (업무별 전화번호) */
+.gbtw{margin-bottom:12px;box-shadow:none}
+.gbtable,.gbmx,.gbraw{width:100%;border-collapse:collapse;font-size:12.5px}
+.gbtable th,.gbmx thead th{text-align:left;font-size:11px;color:var(--tx3);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--bg2)}
+.gbtable td,.gbraw td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--tx2);line-height:1.5}
+.gbtable tr:last-child td,.gbraw tr:last-child td{border-bottom:0}
+.gbtable td a{color:var(--tx);font-weight:700;text-decoration:none;white-space:nowrap}
+.gbtable td a:hover{text-decoration:underline}
+.gbtable td small{display:block;color:var(--tx3);font-size:11.5px;margin-top:2px}
+.gbtable td:nth-child(2){min-width:170px}
+.gbtable td:nth-child(3){min-width:220px}
+.gbtel{white-space:nowrap;font-variant-numeric:tabular-nums}
+.gbmx thead th.gbh{text-align:center;padding:8px 3px}
+.gbmx thead th.gbh.x,.gbmx td.gbc.x{background:var(--bg3)}
+.gbmx td{border-bottom:1px solid var(--line)}
+.gbmx td.gbt{padding:7px 10px;min-width:220px;position:sticky;left:0;background:var(--bg2);z-index:1}
+.gbmx thead th:first-child{position:sticky;left:0;z-index:2}
+.gbmx td.gbt b{display:block;font-size:12.5px;color:var(--tx);line-height:1.4}
+.gbmx td.gbt small{display:block;font-size:11px;color:var(--tx3);margin-top:1px;line-height:1.4}
+.gbmx td.gbc{text-align:center;color:var(--j);font-size:12px;padding:6px 2px;min-width:30px}
+.gbmx td.gbn{text-align:center;font-weight:700;color:var(--tx3);white-space:nowrap;padding:6px 8px;font-variant-numeric:tabular-nums}
+.gbmx td.gbn.all{color:var(--ok)}
+.gbmx tr.gbg th{text-align:left;background:var(--bg3);font-size:11.5px;color:var(--tx2);letter-spacing:.04em;padding:6px 10px;border-bottom:1px solid var(--line)}
+.gbraw td:first-child{white-space:nowrap;color:var(--tx3);width:1%}
+.gbpts{margin-top:4px}
+.gbfold .gbtw{margin-bottom:4px}
+@media print{
+  .gbtw{border:0;overflow:visible}
+  .gbtable,.gbmx{font-size:7.5pt}
+  .gbtable th,.gbtable td,.gbmx thead th{padding:.8mm 1.2mm;color:#000}
+  .gbtable td small{font-size:6.5pt;color:#333}
+  .gbtable td:nth-child(2),.gbtable td:nth-child(3){min-width:0}
+  .gbtable tr,.gbmx tr{break-inside:avoid}
+  .gbmx td.gbt{position:static;min-width:0;width:52mm;padding:.6mm 1.2mm}
+  .gbmx thead th:first-child{position:static}
+  .gbmx td.gbt b{font-size:7.5pt}
+  .gbmx td.gbt small{font-size:6.3pt;color:#333}
+  .gbmx td.gbc,.gbmx td.gbn{padding:.4mm .5mm;color:#000;min-width:0;font-size:7pt}
+  .gbmx thead th.gbh{padding:.6mm .3mm;font-size:6.5pt}
+  .gbmx tr.gbg th{padding:.8mm 1.2mm;font-size:7.5pt;color:#000}
+  .gbmx thead th.gbh.x,.gbmx td.gbc.x,.gbmx tr.gbg th{background:#f2f2f2!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }

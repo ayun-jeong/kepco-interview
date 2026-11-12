@@ -207,6 +207,30 @@
   $('#gbQa').innerHTML = GBQ.filter(q => q.id !== 'p_why').map(q => card(q, 'gbq')).join('');
   $('#gbNote').textContent = `경북 관련 질문은 5번 질문 모음에 답변과 함께 있다: ${GBQ.map(q => `Q${q.no} ${q.q}`).join(' / ')}`;
 
+  /* ───── 경북본부·지사가 하는 일 (업무별 전화번호) ───── */
+  (function gbwork() {
+    const G = window.GBWORK, el = $('#gbWork'); if (!G || !el) return;
+    const QB = new Map(Q.map(q => [q.id, q]));
+    const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
+    const O = G.offices, BR = O.filter(o => o.kind === '지사');
+    const has = (o, t) => o.rows.some(r => t.kw.some(k => (r[0] + ' ' + r[1]).includes(k)));
+    const link = o => `https://www.kepco.co.kr/home/about/locations/gyeongbuk/${o.kind === '본부' ? 'headquarters' : 'branch'}.do?branchNo=${o.no}`;
+    const depts = o => { const m = new Map(); o.rows.forEach(r => m.set(r[0], (m.get(r[0]) || 0) + 1)); return [...m].map(([d, n]) => `${esc(d)} ${n}`).join(' · '); };
+    const xc = o => o.kind === '지사' ? '' : ' x';
+    const sum = `<div class="tablewrap gbtw"><table class="gbtable"><thead><tr><th>사업소</th><th>관할</th><th>부서 · 번호 줄 수</th><th>국번</th></tr></thead><tbody>${O.map(o => `<tr><td><a href="${link(o)}" target="_blank" rel="noopener">${esc(o.name)}</a><small>${esc(o.addr)}</small></td><td>${esc(o.prec)}</td><td>${depts(o)}</td><td class="gbtel">${esc(o.tel)}</td></tr>`).join('')}</tbody></table></div>`;
+    const groups = [...new Set(G.tasks.map(t => t.g))];
+    const mx = `<div class="tablewrap gbtw"><table class="gbmx"><thead><tr><th>업무</th>${O.map(o => `<th class="gbh${xc(o)}">${esc(o.short)}</th>`).join('')}<th class="gbh">지사</th></tr></thead><tbody>`
+      + groups.map(g => `<tr class="gbg"><th colspan="${O.length + 2}">${esc(g)}</th></tr>` + G.tasks.filter(t => t.g === g).map(t => { const n = BR.filter(o => has(o, t)).length; return `<tr><td class="gbt"><b>${esc(t.t)}</b>${t.d ? `<small>${esc(t.d)}</small>` : ''}</td>${O.map(o => `<td class="gbc${xc(o)}">${has(o, t) ? '●' : ''}</td>`).join('')}<td class="gbn${n === BR.length ? ' all' : ''}">${n}/${BR.length}</td></tr>`; }).join('')).join('')
+      + `</tbody></table></div>`;
+    const pts = `<div class="ccard gbpts"><span class="lbl">번호표로 본 포인트 ${G.points.length}</span><ul class="plain">${G.points.map(([t, u]) => `<li><b>${esc(t)}</b> ${esc(u)}</li>`).join('')}</ul><div class="jdq">${ql(G.ids)}</div></div>`;
+    const total = O.reduce((n, o) => n + o.rows.length, 0);
+    const raw = `<details class="lfold gbfold screenonly"><summary>사업소별 업무별 전화번호 원문 ${total}줄 펼치기</summary>${O.map(o => `<h5 class="lmonth">${esc(o.name)} <small>${o.rows.length}줄 · ${esc(o.tel)}</small></h5><div class="tablewrap gbtw"><table class="gbraw"><tbody>${o.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="gbtel">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>`).join('')}</details>`;
+    el.innerHTML = `<p class="subp">${esc(G.intro)}</p>`
+      + `<h4 class="ideah">사업소 ${O.length}곳 한눈에 · 이름을 누르면 홈페이지</h4>${sum}`
+      + `<h4 class="ideah">업무 지도 · 어느 사업소가 무슨 일을 하나 (● = 번호표에 있음)</h4>${mx}`
+      + pts + raw;
+  })();
+
   /* ───── 연습 ───── */
   (function practice() {
     let cur = null, timer = null, left = 60, total = 60;
@@ -278,7 +302,7 @@
     apply();
   })();
 
-  const NUM = { exps: ME.exps.length, cards: MEMO.cards.length, aixNow: AX.now.length, aixIdeas: `${AXN} · ${AX.ideas.map(g => `${g.lbl} ${g.list.length}`).join(' · ')}`, latest: `${LT.items.length}건 · 보도 ${LT.items.filter(x => x.s === 'pr' || x.s === 'ex').length} · 사보 ${LT.items.filter(x => x.s === 'mag').length} · 영상 ${LT.items.filter(x => x.s === 'yt').length}` };
+  const NUM = { exps: ME.exps.length, cards: MEMO.cards.length, aixNow: AX.now.length, aixIdeas: `${AXN} · ${AX.ideas.map(g => `${g.lbl} ${g.list.length}`).join(' · ')}`, gbwork: window.GBWORK ? `${GBWORK.offices.length}곳 · 번호 ${GBWORK.offices.reduce((n, o) => n + o.rows.length, 0)}줄` : '', latest: `${LT.items.length}건 · 보도 ${LT.items.filter(x => x.s === 'pr' || x.s === 'ex').length} · 사보 ${LT.items.filter(x => x.s === 'mag').length} · 영상 ${LT.items.filter(x => x.s === 'yt').length}` };
   $$('[data-n]').forEach(el => { const k = el.dataset.n; el.textContent = k in NUM ? NUM[k] : (MEMO[k] || []).length; });
   $('#upd').textContent = `자료 기준일 ${UPDATED}.`;
 })();
