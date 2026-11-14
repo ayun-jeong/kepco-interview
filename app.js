@@ -151,7 +151,7 @@
   function answerBody(a, compact = false) {
     if (!a.s) return '<p class="empty">준비 중인 답변입니다.</p>';
     const references = (a.refs || []).map(sourceLink).join(' ');
-    const lectureNotes = (a.lecture || []).map(n => `<div class="ff"><small>특강 ${n.page}쪽 · ${esc(n.kind)}</small><p><strong>${esc(n.question)}</strong></p><p>${esc(n.cue)}</p></div>`).join('');
+    const lectureNotes = (a.lecture || []).map(n => `<div class="ff"><small>특강 ${n.page}쪽 · ${esc(n.kind)}</small><p><strong>${esc(n.question)}</strong></p>${n.cue ? `<p>${esc(n.cue)}</p>` : ''}</div>`).join('');
     const extras = `<div class="two"><div class="kk"><b>한전 업무와 연결</b><p>${esc(meText(a.k))}</p>${references}</div>
       <div class="ee"><b>연결할 경험</b><p>${expLink(a.e)}</p></div></div>
       ${a.f ? `<div class="ff"><b>꼬리질문 대비</b><p>${expLink(meText(a.f))}</p></div>` : ''}${lectureNotes}`;
@@ -185,7 +185,7 @@
   const inGroup = (q, g) => g === '전체' || (g === '빈출' ? frequent(q) : g === '최근 기출' ? q.rec.length > 0 : q.group === g);
   const searchIndex = new Map(Q.map(q => {
     const a = A[q.id] || {};
-    return [q.id, [q.q, q.cat, ...(q.v || []).map(v => v[1]), meText(a.s), a.k, a.e, a.f, ...(a.lecture || []).map(n => `특강 ${n.page}쪽 ${n.question} ${n.cue}`)].join(' ').toLowerCase()];
+    return [q.id, [q.q, q.cat, ...(q.v || []).map(v => v[1]), meText(a.s), a.k, a.e, a.f, ...(a.lecture || []).map(n => `특강 ${n.page}쪽 ${n.kind} ${n.question} ${n.cue || ''}`)].join(' ').toLowerCase()];
   }));
   function matches() {
     const term = state.q.trim().toLowerCase();
