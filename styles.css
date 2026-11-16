@@ -934,3 +934,29 @@ summary:focus-visible{outline-offset:-3px}
   .ylist .lme{font-size:9pt;margin:1mm 0 0}
   .pm-blank .yq .yqa{display:none}
 }
+/* 경영평가 지적사항 */
+.audit-years{margin:14px 0 16px}
+.audit-years caption{text-align:left;font-size:12.5px;font-weight:650;color:var(--tx3);padding-bottom:6px}
+.audit-years .c{text-align:center;white-space:nowrap}
+.audit-years tbody th{font-weight:650;white-space:nowrap}
+.audit-years tbody th a{color:inherit;text-decoration:none}
+.audit-years tbody tr:last-child th{border-bottom:0}
+.audit-years td.c{color:var(--j);font-weight:700}
+.afollow b{margin-right:6px;color:var(--e)}
+.afinds b{display:inline-block;min-width:38px;margin-right:6px;color:var(--j);font-variant-numeric:tabular-nums}
+.afinds small{display:inline-block;margin-right:6px;font-size:12px;font-weight:650;color:var(--tx3)}
+.afix ol{margin:6px 0 0;padding-left:20px}
+.afix li{font-size:14.5px;line-height:1.7}
+.afix li+li{margin-top:5px}
+.afix strong{margin-right:4px}
+.ame{margin:12px 0 0}
+@media print{
+  .audit-years{font-size:9pt;break-inside:avoid;margin:2mm 0}
+  .audit-years caption{font-size:8.5pt}
+  .audit-years th,.audit-years td{padding:.8mm 2mm}
+  .afinds small{font-size:7.5pt}
+  .afix ol{padding-left:4.5mm;margin:.6mm 0 0}
+  .afix li{font-size:9.5pt;line-height:1.5;break-inside:avoid}
+  .ame{margin:1.4mm 0 0}
+  .pm-blank .afix,.pm-blank .ame,.pm-blank .afollow{display:none}
+}

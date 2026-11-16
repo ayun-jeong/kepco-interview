@@ -125,12 +125,15 @@
     el.addEventListener('click', e => { const b = e.target.closest('[data-lf]'); if (!b) return; $$('[data-lf]', el).forEach(z => { z.classList.toggle('on', z === b); z.setAttribute('aria-pressed', z === b); }); $('#latestList').innerHTML = list(b.dataset.lf); });
   })();
 
+  /* 연도별 이슈와 경영평가 지적사항이 함께 쓰는 질문 링크·경험 줄 */
+  const QIDX = new Map(Q.map(q => [q.id, q]));
+  const qLinks = ids => (ids || []).map(id => QIDX.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
+  const expLine = k => k && EXP.has(k) ? `<p class="lme"><b>내 경험</b> <a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a> · ${esc(EXP.get(k).n)}</p>` : '';
+
   /* ───── 연도별 주요 이슈 · 2024.9 ~ 2026.6 ───── */
   (function yearly() {
     const Y = window.YEARLY, el = $('#yearIssues'); if (!Y || !el) return;
-    const QB = new Map(Q.map(q => [q.id, q]));
-    const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
-    const me = k => k && EXP.has(k) ? `<p class="lme"><b>내 경험</b> <a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a> · ${esc(EXP.get(k).n)}</p>` : '';
+    const ql = qLinks, me = expLine;
     const ym = d => `${d.slice(0, 4)}.${+d.slice(5, 7)}`;
     const tags = new Map(); Y.items.forEach(x => x.tags.forEach(t => tags.set(t, (tags.get(t) || 0) + 1)));
     const ask = x => `<div class="yq"><b>예상 질문 · 출제 가능성 ${esc(x.lv)}</b><p class="yqq">${esc(x.q)}</p><p class="ykw">핵심 키워드 · ${esc(x.kw)}</p><p class="yqa">${esc(x.a)}</p></div>`;
@@ -141,6 +144,27 @@
         ${x.to ? `<p class="screenonly"><a href="#${x.to[0]}">${esc(x.to[1])}</a></p>` : ''}
         <div class="jdq screenonly">${ql(x.ids)}</div></div></details>`;
     el.innerHTML = `<p class="subp">${esc(Y.intro)}</p><p class="ytags">${[...tags].map(([t, n]) => `#${esc(t)} ${n}건`).join(' · ')}</p><div class="topic-list ylist">${Y.items.map(item).join('')}</div>`;
+  })();
+
+  /* ───── 경영평가 지적사항 · 한전이 풀어야 할 과제와 해결 방안 ───── */
+  (function audit() {
+    const X = window.AUDIT, el = $('#auditBlock'); if (!X || !el) return;
+    const YRS = [...new Set(X.themes.flatMap(t => t.finds.map(f => f[0])))].sort();
+    const yearsOf = t => new Set(t.finds.map(f => f[0]));
+    const table = `<div class="tablewrap"><table class="srctable audit-years"><caption>주제별로 지적받은 평가대상년도</caption><thead><tr><th scope="col">주제</th>${YRS.map(y => `<th scope="col" class="c">${y}</th>`).join('')}<th scope="col" class="c">연도 수</th></tr></thead><tbody>${X.themes.map(t => {
+      const ys = yearsOf(t);
+      return `<tr><th scope="row"><a href="#au-${t.k}">${esc(t.t.split(' · ')[0])}</a></th>${YRS.map(y => `<td class="c">${ys.has(y) ? '●' : ''}</td>`).join('')}<td class="c">${ys.size}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+    const item = t => `<details class="topic" id="au-${t.k}"><summary><span>${esc(t.t)}</span><span class="topic-count">${yearsOf(t).size}개 연도 · 지적 ${t.finds.length}건</span></summary>
+      <div class="topic-text"><dl><dt>무엇을 지적받았나요?</dt><dd><ul class="yfacts afinds">${t.finds.map(([y, ind, txt]) => `<li><b>${y}</b><small>${esc(ind)}</small> ${esc(txt)}</li>`).join('')}</ul></dd>
+        <dt>왜 되풀이되나요?</dt><dd>${esc(t.cause)}</dd>${t.now ? `<dt>한전이 이미 하고 있는 것</dt><dd>${esc(t.now)}</dd>` : ''}</dl>
+        <div class="yq afix"><b>해결 방안</b><ol>${t.fix.map(([h, u]) => `<li><strong>${esc(h)}</strong> ${esc(u)}</li>`).join('')}</ol></div>
+        <dl class="ame"><dt>경북 지사 사무직으로서 할 일</dt><dd>${esc(t.me)}</dd></dl>
+        <div class="issue-answer"><b>면접 답변 예시</b><p>${esc(t.a)}</p></div>${expLine(t.e)}
+        <div class="jdq screenonly">${qLinks(t.ids)}</div></div></details>`;
+    el.innerHTML = `<p class="subp">${esc(X.intro)} ${sourceLink(X.src)}</p>
+      <div class="issue-answer"><b>1분 답변 · ${esc(X.lead.q)}</b><p>${esc(X.lead.a)}</p></div><p class="subp afollow"><b>꼬리질문</b> ${esc(X.lead.f)}</p>
+      ${table}<div class="topic-list ylist">${X.themes.map(item).join('')}</div>`;
   })();
 
   $('#cardList').innerHTML = MEMO.cards.map(([q, a]) => `<li><b>${esc(q)}</b><span>${esc(a)}</span></li>`).join('');
@@ -346,7 +370,7 @@
   (function printer() {
     const book = [
       ['company', '한국전력공사 기업 설명'],
-      ['topics', '기업 이슈 · 주제별 해설'], ['memo', '기업 이슈 · 연도별 이슈와 제도 변화'], ['jobdesc', '사무직 직무'], ['gb', '경북지역 업무'], ['me', '나의 경험·자기소개서'], ['struct', '면접 안내·후기'],
+      ['topics', '기업 이슈 · 주제별 해설'], ['memo', '기업 이슈 · 연도별 이슈·경영평가 지적·제도 변화'], ['jobdesc', '사무직 직무'], ['gb', '경북지역 업무'], ['me', '나의 경험·자기소개서'], ['struct', '면접 안내·후기'],
       ['cards', '숫자 암기 카드'], ['practice', '말하기 연습 안내']
     ];
     const groupNames = Object.keys(ORDER);
@@ -535,7 +559,7 @@
   });
   navigate();
 
-  const NUM = { themes: LT.themes.length, yearly: (window.YEARLY?.items || []).length, sources: SOURCES.length, exps: ME.exps.length, cards: MEMO.cards.length };
+  const NUM = { themes: LT.themes.length, yearly: (window.YEARLY?.items || []).length, audit: (window.AUDIT?.themes || []).length, sources: SOURCES.length, exps: ME.exps.length, cards: MEMO.cards.length };
   $$('[data-n]').forEach(el => { el.textContent = NUM[el.dataset.n]; });
   $('#upd').textContent = `자료 기준일 ${UPDATED}.`;
 })();
