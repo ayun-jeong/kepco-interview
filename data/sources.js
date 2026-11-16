@@ -140,4 +140,9 @@ window.REFS = [
   { t: '전기신문: 동해안-신가평 HVDC 현장', url: 'https://www.electimes.com/news/articleView.html?idxno=363805' },
   { t: '네이트: 산불 복구·지원 265억', url: 'https://news.nate.com/view/20250529n10042' },
   { t: '에너지데일리: 2026 봄철 산불 정전 0건', url: 'https://www.energydaily.co.kr/news/articleView.html?idxno=200260' },
+  { t: '한전 보도자료: 서해안 HVDC 에너지 고속도로 건설 속도낸다 (2026.3.19)', url: 'https://www.kepco.co.kr/home/media/newsroom/pr/boardView.do?boardMngNo=15&boardNo=3044' },
+  { t: '한전 보도자료: 사우디 자푸라 2단계 열병합 사업 수주 (2026.6.3)', url: 'https://www.kepco.co.kr/home/media/newsroom/pr/boardView.do?boardMngNo=15&boardNo=3089' },
+  { t: '더팩트: 한전은 지분투자·한수원은 건설…K-원전 수출 역할 재정비 (2026.5.14)', url: 'https://news.tf.co.kr/read/economy/2322390.htm' },
+  { t: '머니투데이: 쪼개진 K원전 다시 원팀으로 (2026.5.14)', url: 'https://www.mt.co.kr/economy/2026/05/14/2026051414071973393' },
+  { t: '제공 자료: 4. 주요 이슈 정리(38~42쪽)·D. 주요 이슈별 예상 질문(53~54쪽) · 연도별 주요 이슈 9건의 출처' },
 ];

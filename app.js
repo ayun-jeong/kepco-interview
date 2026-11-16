@@ -3,7 +3,7 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const UPDATED = '2026-11-12';
+  const UPDATED = '2026-11-16';
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
   const S = new Map(SOURCES.map(s => [s.k, s]));
   const CAT = new Map(CATS.map(c => [c.k, c]));
@@ -123,6 +123,24 @@
         <div id="latestList">${list('all')}</div></details>
       <div id="sourceDigest" class="printonly"><h4 class="sub">날짜별 이슈 해설 · ${items.length}건</h4><ol class="lprint">${items.map(x => `<li><b>${md(x)} ${SL[x.s]}</b> <a href="${url(x)}">${esc(x.t)}</a><span class="digest-detail"> · ${tag(x)}<br>${esc(x.f)}</span></li>`).join('')}</ol></div>`;
     el.addEventListener('click', e => { const b = e.target.closest('[data-lf]'); if (!b) return; $$('[data-lf]', el).forEach(z => { z.classList.toggle('on', z === b); z.setAttribute('aria-pressed', z === b); }); $('#latestList').innerHTML = list(b.dataset.lf); });
+  })();
+
+  /* ───── 연도별 주요 이슈 · 2024.9 ~ 2026.6 ───── */
+  (function yearly() {
+    const Y = window.YEARLY, el = $('#yearIssues'); if (!Y || !el) return;
+    const QB = new Map(Q.map(q => [q.id, q]));
+    const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
+    const me = k => k && EXP.has(k) ? `<p class="lme"><b>내 경험</b> <a class="elink" href="#exp-${k}">${esc(EXP.get(k).t)}</a> · ${esc(EXP.get(k).n)}</p>` : '';
+    const ym = d => `${d.slice(0, 4)}.${+d.slice(5, 7)}`;
+    const tags = new Map(); Y.items.forEach(x => x.tags.forEach(t => tags.set(t, (tags.get(t) || 0) + 1)));
+    const ask = x => `<div class="yq"><b>예상 질문 · 출제 가능성 ${esc(x.lv)}</b><p class="yqq">${esc(x.q)}</p><p class="ykw">핵심 키워드 · ${esc(x.kw)}</p><p class="yqa">${esc(x.a)}</p></div>`;
+    const item = x => `<details class="topic" id="yi-${x.k}"><summary><span>${ym(x.d)} · ${esc(x.t)}</span><span class="topic-count">${x.tags.map(t => '#' + esc(t)).join(' ')}</span></summary>
+      <div class="topic-text"><dl><dt>무슨 일이 있었나요?</dt><dd><ul class="yfacts">${x.facts.map(f => `<li>${esc(f)}</li>`).join('')}</ul></dd><dt>왜 중요한가요?</dt><dd>${esc(x.why)}</dd></dl>
+        <div class="issue-answer"><b>면접 답변 예시</b><p>${esc(x.a)}</p></div>${(x.qs || []).map(ask).join('')}${me(x.e)}
+        ${x.refs ? `<p class="topic-source">${x.refs.map(sourceLink).join(' · ')}</p>` : ''}
+        ${x.to ? `<p class="screenonly"><a href="#${x.to[0]}">${esc(x.to[1])}</a></p>` : ''}
+        <div class="jdq screenonly">${ql(x.ids)}</div></div></details>`;
+    el.innerHTML = `<p class="subp">${esc(Y.intro)}</p><p class="ytags">${[...tags].map(([t, n]) => `#${esc(t)} ${n}건`).join(' · ')}</p><div class="topic-list ylist">${Y.items.map(item).join('')}</div>`;
   })();
 
   $('#cardList').innerHTML = MEMO.cards.map(([q, a]) => `<li><b>${esc(q)}</b><span>${esc(a)}</span></li>`).join('');
@@ -328,7 +346,7 @@
   (function printer() {
     const book = [
       ['company', '한국전력공사 기업 설명'],
-      ['topics', '기업 이슈 · 주제별 해설'], ['memo', '기업 이슈 · 제도 변화와 발표 자료'], ['jobdesc', '사무직 직무'], ['gb', '경북지역 업무'], ['me', '나의 경험·자기소개서'], ['struct', '면접 안내·후기'],
+      ['topics', '기업 이슈 · 주제별 해설'], ['memo', '기업 이슈 · 연도별 이슈와 제도 변화'], ['jobdesc', '사무직 직무'], ['gb', '경북지역 업무'], ['me', '나의 경험·자기소개서'], ['struct', '면접 안내·후기'],
       ['cards', '숫자 암기 카드'], ['practice', '말하기 연습 안내']
     ];
     const groupNames = Object.keys(ORDER);
@@ -442,7 +460,7 @@
       $('#paperPractice p').textContent = $('#practice .shead p').textContent +
         (picked ? ` 현재 연습 문항은 Q${picked.no}, 제한 시간은 ${$('#sec').value}초입니다.` : ' 30초, 60초, 90초 중 하나를 정해 연습하세요.');
       $('#topicPages').classList.toggle('omit-paper', !includes('topics') && !includes('memo'));
-      $$('#latest, .topic-period, .topic-list').forEach(el => el.classList.toggle('omit-paper', !includes('topics')));
+      $$('#latest, #latestBlock .topic-period, #latestBlock .topic-list').forEach(el => el.classList.toggle('omit-paper', !includes('topics')));
       $('#memoLibrary').classList.toggle('omit-paper', !includes('memo'));
       $('#memory-cards').classList.toggle('omit-paper', !includes('cards'));
       $('#sourceDigest').classList.toggle('omit-paper', !includes('memo') || !current.appendix);
@@ -517,7 +535,7 @@
   });
   navigate();
 
-  const NUM = { themes: LT.themes.length, sources: SOURCES.length, exps: ME.exps.length, cards: MEMO.cards.length };
+  const NUM = { themes: LT.themes.length, yearly: (window.YEARLY?.items || []).length, sources: SOURCES.length, exps: ME.exps.length, cards: MEMO.cards.length };
   $$('[data-n]').forEach(el => { el.textContent = NUM[el.dataset.n]; });
   $('#upd').textContent = `자료 기준일 ${UPDATED}.`;
 })();

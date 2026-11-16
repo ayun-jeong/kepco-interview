@@ -910,3 +910,27 @@ summary:focus-visible{outline-offset:-3px}
   .stakeholder-table{break-inside:avoid;font-size:9.5pt}
   .stakeholder-table th,.stakeholder-table td{padding:1mm 1.5mm}
 }
+/* 연도별 주요 이슈 */
+.ytags{margin:0 0 10px;font-size:12.5px;font-weight:650;color:var(--tx3)}
+.yfacts{margin:0;padding-left:18px}
+.yfacts li+li{margin-top:5px}
+.yq{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:10px 14px;margin:12px 0}
+.yq>b{font-size:12px;font-weight:750;color:var(--e)}
+.yq p{margin:5px 0 0;font-size:14.5px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
+.yq .yqq{font-weight:700}
+.yq .ykw{font-size:13px;color:var(--tx2)}
+.ylist .lme{font-size:14px;margin:10px 0 0}
+.ylist .lme b{font-size:12px;color:var(--c)}
+@media print{
+  .ytags{font-size:8pt;margin:0 0 1mm}
+  .ylist .topic{break-inside:auto}
+  .ylist .topic>summary{break-after:avoid}
+  .yfacts{padding-left:4mm}
+  .yfacts li{break-inside:avoid}
+  .yq{border:0;border-left:1pt solid #999;border-radius:0;background:none;padding:0 0 0 2.5mm;margin:1.4mm 0 0;break-inside:avoid}
+  .yq>b{font-size:8.5pt;color:#333}
+  .yq p{font-size:9.5pt;line-height:1.5;color:#111;margin:.6mm 0 0}
+  .yq .ykw{font-size:8.5pt;color:#333}
+  .ylist .lme{font-size:9pt;margin:1mm 0 0}
+  .pm-blank .yq .yqa{display:none}
+}
