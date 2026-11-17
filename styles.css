@@ -538,6 +538,38 @@ mark.eh{background:var(--a-bg);color:inherit;border-radius:4px;padding:1px 3px;-
 }
 
 /* 경북본부·지사가 하는 일 (업무별 전화번호) */
+.gb-projects{width:100%;border-collapse:collapse;font-size:13px;line-height:1.65}
+.gb-projects caption{text-align:left;padding:10px 12px;font-weight:700;color:var(--tx)}
+.gb-projects th,.gb-projects td{text-align:left;vertical-align:top;padding:12px;border-bottom:1px solid var(--line)}
+.gb-projects thead th{background:var(--bg3);font-size:12px}
+.gb-projects tbody th{width:18%;min-width:145px}
+.gb-projects td{min-width:210px;color:var(--tx2)}
+.gb-projects small{display:block;font-weight:400;color:var(--tx3);margin-top:4px}
+.gb-projects a,.gb-project-scope a{font-size:12px}
+.gb-project-roles{margin-bottom:16px}
+.gb-project-scope{margin-top:14px}
+@media screen and (max-width:680px){
+  .gb-projects-wrap{overflow:visible;border:0;background:transparent}
+  .gb-projects,.gb-projects tbody{display:block;width:100%}
+  .gb-projects caption{display:block;padding:0 0 10px}
+  .gb-projects thead{display:none}
+  .gb-projects tbody tr{display:block;margin-bottom:14px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .gb-projects tbody th,.gb-projects td{display:block;box-sizing:border-box;width:100%;min-width:0;padding:12px}
+  .gb-projects tbody th{background:var(--bg3)}
+  .gb-projects td::before{display:block;margin-bottom:5px;font-size:11px;font-weight:700;color:var(--tx3)}
+  .gb-projects td:nth-child(2)::before{content:"무엇을 하는가"}
+  .gb-projects td:nth-child(3)::before{content:"시행 시점·현재 확인 단계"}
+  .gb-projects td:nth-child(4)::before{content:"담당 조직·근거"}
+  .gb-projects td:last-child{border-bottom:0}
+}
+@media print{
+  .gb-projects{font-size:8pt;line-height:1.5;table-layout:fixed}
+  .gb-projects th,.gb-projects td{min-width:0;padding:1.5mm;overflow-wrap:anywhere}
+  .gb-projects tbody th{min-width:0;width:18%}
+  .gb-projects thead th,.gb-projects a{font-size:7.5pt}
+  .gb-projects tr{break-inside:avoid}
+  .gb-projects caption{padding:1mm 0}
+}
 .gbtw{margin-bottom:12px;box-shadow:none}
 .gbtable,.gbmx,.gbraw{width:100%;border-collapse:collapse;font-size:12.5px}
 .gbtable th,.gbmx thead th{text-align:left;font-size:11px;color:var(--tx3);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--bg2)}
