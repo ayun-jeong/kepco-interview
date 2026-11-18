@@ -284,7 +284,7 @@
     const ql = ids => (ids || []).map(id => QB.get(id)).filter(Boolean).map(q => `<a href="#q-${q.id}"><b>Q${q.no}</b> ${esc(q.q.replace(/\s*\([^)]*\)/g, '').split(' · ')[0])}</a>`).join('');
     const updates = new Map(X.now.filter(x => x.project).map(x => [x.project, x]));
 
-    const aiNote = (x, title, status) => `<div class="mrow arow"><div class="mt"><b>${esc(title)}</b><small class="aw">${esc(status)}${status ? ' · ' : ''}${esc(x.w)}</small></div><div class="mf">${esc(x.f)}</div><div class="mex jdq screenonly">${ql(x.ids)}</div></div>`;
+    const aiNote = (x, title, status) => `<div class="mrow arow"${x.id ? ` id="${esc(x.id)}"` : ''}><div class="mt"><b>${esc(title)}</b><small class="aw">${esc(status)}${status ? ' · ' : ''}${esc(x.w)}</small></div><div class="mf">${esc(x.f)}${x.cases ? `<dl class="profile">${x.cases.map(([t, stage, f]) => `<dt>${esc(t)}</dt><dd><strong>${esc(stage)}</strong> · ${esc(f)}</dd>`).join('')}</dl><div class="issue-answer"><b>사무직 면접 답변 예시 · 학습용</b><p>${esc(x.a)}</p></div>` : ''}${x.source ? `<p class="topic-source">${sourceLink(x.source)}</p>` : ''}</div><div class="mex jdq screenonly">${ql(x.ids)}</div></div>`;
     const inventory = X.inventory.map(g => `<h4 class="ideah">${esc(g.status)} · 2026년 6월 말 기준</h4><div class="memo">${g.cases.map(c => {
       const update = updates.get(c.project);
       if (update) return aiNote(update, c.t, `6월 자료 ${c.page}쪽`);
