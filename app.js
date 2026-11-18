@@ -3,6 +3,27 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // 초기 화면과 검색·페이지 이동 후 추가되는 외부 링크에 동일하게 적용한다.
+  function prepareExternalLinks(root) {
+    const links = root.matches?.('a[href]') ? [root] : [];
+    links.push(...(root.querySelectorAll?.('a[href]') || []));
+    for (const link of links) {
+      let url;
+      try { url = new URL(link.getAttribute('href'), document.baseURI); } catch { continue; }
+      if (!['http:', 'https:'].includes(url.protocol) || url.origin === location.origin) continue;
+      link.target = '_blank';
+      link.relList.add('noopener', 'noreferrer');
+    }
+  }
+  prepareExternalLinks(document);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') prepareExternalLinks(record.target);
+      else record.addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) prepareExternalLinks(node);
+      });
+    }
+  }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['href'] });
   const UPDATED = '2026-11-17';
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
   const S = new Map(SOURCES.map(s => [s.k, s]));
